@@ -1,10 +1,10 @@
 [map]
 map_name = 'Town01_Opt'
 map_path = 'Carla/Maps/'
-
-[walker]
 sumo_coordinates = true
 sumo_offset = [0.06, 328.61, 0.0]
+
+[walker]
 spectator_focus = 'ped_4'
 
 [[walker.pedestrians]]

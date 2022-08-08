@@ -1,11 +1,11 @@
 [map]
 map_name = 'Town01_Opt'
 map_path = 'Carla/Maps/'
+sumo_coordinates = true
+sumo_offset = [0.06, 328.61, 0.0]
 
 [walker]
-sumo_coordinates = true
-spectator_focus = 'ped_0'
-sumo_offset = [0.06, 328.61, 0.0]
+#aspectator_focus = 'ped_0'
 
 [[walker.pedestrians]]
 role_name = 'ped_0'
@@ -21,3 +21,8 @@ spawn_rotation = [0.0, 180.0, 0.0]
 destination = [100.0, 269.0, 0.0]
 spawn_speed = 1.0
 
+[obstacles]
+resolution = 10
+[[obstacles.borders]]
+start_point = [116.0, 270.0]
+end_point = [116.5, 268.5]

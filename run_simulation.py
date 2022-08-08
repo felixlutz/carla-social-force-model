@@ -82,12 +82,19 @@ def simulation_loop(args):
     scenario_config = load_config(args.scenario_config)
     sfm_config = load_config(args.sfm_config)
 
+    # initialize CARLA simulation
     carla_simulation = CarlaSimulation(args.carla_host, args.carla_port, args.step_length, scenario_config)
 
+    # spawn initial pedestrians
     spawn_points, spawn_speeds, initial_ped_state = extract_ped_info(scenario_config)
     walker_dict = spawn_pedestrians(spawn_points, spawn_speeds, carla_simulation, scenario_config)
 
-    pedestrian_simulation = PedestrianSimulation(initial_ped_state, sfm_config, walker_dict, args.step_length)
+    # extract obstacles for pedestrian simulation
+    obstacles = extract_obstacle_info(scenario_config)
+
+    # initialize pedestrian simulation
+    pedestrian_simulation = PedestrianSimulation(initial_ped_state, obstacles, sfm_config,
+                                                 walker_dict, args.step_length)
 
     sim_runner = SimulationRunner(pedestrian_simulation, carla_simulation, walker_dict)
 
@@ -131,7 +138,11 @@ def convert_coordinates(coordinates, sumo_offset):
     :return:
     """
 
-    new_coordinates = coordinates - sumo_offset
+    if len(coordinates) == 2:
+        new_coordinates = coordinates - sumo_offset[0:2]
+    else:
+        new_coordinates = coordinates - sumo_offset
+
     new_coordinates[1] *= -1
 
     return new_coordinates
@@ -145,8 +156,8 @@ def extract_ped_info(scenario_config):
     :return:
     """
 
-    sumo_coordinates = scenario_config['walker']['sumo_coordinates']
-    sumo_offset = scenario_config.get('walker').get('sumo_offset')
+    sumo_coordinates = scenario_config['map']['sumo_coordinates']
+    sumo_offset = scenario_config.get('map').get('sumo_offset')
     pedestrian_config = scenario_config['walker']['pedestrians']
 
     spawn_points = {}
@@ -236,10 +247,40 @@ def spawn_pedestrians(spawn_points, spawn_speeds, carla_sim, scenario_config):
     return walker_dict
 
 
+def extract_obstacle_info(scenario_config):
+    sumo_coordinates = scenario_config['map']['sumo_coordinates']
+    sumo_offset = scenario_config.get('map').get('sumo_offset')
+    obstacle_config = scenario_config.get('obstacles')
+
+    if obstacle_config is not None:
+        borders = obstacle_config.get('borders', [])
+        obstacle_resolution = obstacle_config.get('resolution')
+
+        obstacles = []
+        for border in borders:
+            start_point = np.array(border['start_point'])
+            end_point = np.array(border['end_point'])
+
+            if sumo_coordinates:
+                start_point = convert_coordinates(start_point, sumo_offset)
+                end_point = convert_coordinates(end_point, sumo_offset)
+
+            samples = int(np.linalg.norm(end_point - start_point) * obstacle_resolution)
+
+            border_line = np.column_stack((np.linspace(start_point[0], end_point[0], samples),
+                                           np.linspace(start_point[1], end_point[1], samples)))
+            obstacles.append(border_line)
+
+        return obstacles
+
+    else:
+        return None
+
+
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument('--scenario-config',
-                           default='config/scenario_config.toml',
+                           default='config/minimal_scenario_config.toml',
                            type=str,
                            help='scenario configuration file')
     argparser.add_argument('--sfm-config',

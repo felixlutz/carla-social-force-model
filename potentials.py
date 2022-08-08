@@ -18,7 +18,7 @@ class PedPedPotential(object):
         self.sigma = sigma
 
     def b(self, r_ab, speeds, desired_directions):
-        """Calculate b."""
+        """Calculate semi-minor axis b of an ellipse."""
         speeds_b = np.expand_dims(speeds, axis=0)
         speeds_b_abc = np.expand_dims(speeds_b, axis=2)  # abc = alpha, beta, coordinates
         e_b = np.expand_dims(desired_directions, axis=0)
@@ -32,7 +32,7 @@ class PedPedPotential(object):
         return 0.5 * np.sqrt(in_sqrt)
 
     def value_r_ab(self, r_ab, speeds, desired_directions):
-        """Value of potential explicitely parametrized with r_ab."""
+        """Value of potential explicitly parametrized with r_ab."""
         return self.v0 * np.exp(-self.b(r_ab, speeds, desired_directions) / self.sigma)
 
     @staticmethod
@@ -96,7 +96,7 @@ class PedSpacePotential(object):
         if not self.space:
             return np.zeros((state.shape[0], 0, 2))
 
-        r_a = np.expand_dims(state[:, 0:2], 1)
+        r_a = np.expand_dims(state['loc'][:,:2], 1)
         closest_i = [
             np.argmin(np.linalg.norm(r_a - np.expand_dims(B, 0), axis=-1), axis=1)
             for B in self.space

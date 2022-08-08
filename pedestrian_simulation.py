@@ -2,15 +2,17 @@ import numpy as np
 
 import stateutils
 from fieldofview import FieldOfView
-from potentials import PedPedPotential
+from potentials import PedPedPotential, PedSpacePotential
 
 MAX_SPEED_MULTIPLIER = 1.3  # with respect to initial speed
 
 
 class PedestrianSimulation:
-    def __init__(self, initial_ped_state, sfm_config, walker_dict, step_length):
+    def __init__(self, initial_ped_state, obstacles, sfm_config, walker_dict, step_length):
         self.sfm_config = sfm_config
         self.walker_dict = walker_dict
+
+        self.obstacles = obstacles
 
         # update pedestrian states with correct CARLA actor ids
         self.initial_ped_state = add_walker_ids_to_ped_state(initial_ped_state, walker_dict)
@@ -25,11 +27,23 @@ class PedestrianSimulation:
 
         self.delta_t = step_length
         self.V = PedPedPotential(self.delta_t)
+
+        if self.obstacles is not None:
+            self.U = PedSpacePotential(self.obstacles)
+        else:
+            self.U = None
+
         self.w = FieldOfView()
 
     def f_ab(self):
         """Compute f_ab."""
         return -1.0 * self.V.grad_r_ab(self.state)
+
+    def f_aB(self):
+        """Compute f_aB."""
+        if self.U is None:
+            return None
+        return -1.0 * self.U.grad_r_aB(self.state)
 
     def capped_velocity(self, desired_velocity):
         """Scale down a desired velocity to its capped speed."""
@@ -57,10 +71,12 @@ class PedestrianSimulation:
         F_ab = w * f_ab
 
         # repulsive terms between pedestrians and boundaries
-        # F_aB = self.f_aB()
+        F_aB = self.f_aB()
+        z_values = np.zeros(F_aB.shape[0:2])
+        F_aB = np.dstack((F_aB, z_values))
 
         # social force
-        F = F0 + np.sum(F_ab, axis=1)  # + np.sum(F_aB, axis=1)
+        F = F0 + np.sum(F_ab, axis=1) + np.sum(F_aB, axis=1)
         # desired velocity
         w = vel + self.delta_t * F
         # velocity

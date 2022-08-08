@@ -19,9 +19,12 @@ class FieldOfView(object):
         e is rank 2 and normalized in the last index.
         f is a rank 3 tensor.
         """
-        angle = np.einsum('aj,abj->ab', e, f)
-        angle2 = np.linalg.norm(f, axis=-1) * self.cosphi
-        in_sight = angle > angle2
+
+        # calculate angles between desired direction e and social forces f via scalar product
+        angles = np.einsum('aj,abj->ab', e, f)
+
+        # check if calculated angles are within field of view and apply weighting factor if not
+        in_sight = angles > np.linalg.norm(f, axis=-1) * self.cosphi
         out = self.out_of_view_factor * np.ones_like(in_sight)
         out[in_sight] = 1.0
         np.fill_diagonal(out, 0.0)
