@@ -4,8 +4,6 @@ import stateutils
 from fieldofview import FieldOfView
 from potentials import PedPedPotential, PedSpacePotential
 
-MAX_SPEED_MULTIPLIER = 1.3  # with respect to initial speed
-
 
 class PedestrianSimulation:
     def __init__(self, initial_ped_state, obstacles, sfm_config, walker_dict, step_length):
@@ -23,17 +21,20 @@ class PedestrianSimulation:
         self.new_velocities = self.initial_ped_state[['id', 'vel']]
 
         self.initial_speeds = stateutils.speeds(initial_ped_state)
-        self.max_speeds = MAX_SPEED_MULTIPLIER * self.initial_speeds
+        self.max_speeds = self.sfm_config['max_speed_multiplier'] * self.initial_speeds
 
         self.delta_t = step_length
-        self.V = PedPedPotential(self.delta_t)
+        ped_ped_config = self.sfm_config['ped_ped_potential']
+        self.V = PedPedPotential(self.delta_t, ped_ped_config['v0'], ped_ped_config['sigma'])
 
         if self.obstacles is not None:
-            self.U = PedSpacePotential(self.obstacles)
+            ped_space_config = self.sfm_config['ped_space_potential']
+            self.U = PedSpacePotential(self.obstacles, ped_space_config['u0'], ped_space_config['r'])
         else:
             self.U = None
 
-        self.w = FieldOfView()
+        fow_config = self.sfm_config['field_of_view']
+        self.w = FieldOfView(fow_config['two_phi'], fow_config['out_of_view_factor'])
 
     def f_ab(self):
         """Compute f_ab."""
@@ -72,11 +73,15 @@ class PedestrianSimulation:
 
         # repulsive terms between pedestrians and boundaries
         F_aB = self.f_aB()
-        z_values = np.zeros(F_aB.shape[0:2])
-        F_aB = np.dstack((F_aB, z_values))
+        if F_aB is not None:
+            z_values = np.zeros(F_aB.shape[0:2])
+            F_aB = np.dstack((F_aB, z_values))
 
         # social force
-        F = F0 + np.sum(F_ab, axis=1) + np.sum(F_aB, axis=1)
+        F = F0 + np.sum(F_ab, axis=1)
+        if F_aB is not None:
+            F += np.sum(F_aB, axis=1)
+
         # desired velocity
         w = vel + self.delta_t * F
         # velocity

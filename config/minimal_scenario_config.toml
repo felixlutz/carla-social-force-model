@@ -5,7 +5,7 @@ sumo_coordinates = true
 sumo_offset = [0.06, 328.61, 0.0]
 
 [walker]
-#aspectator_focus = 'ped_0'
+spectator_focus = 'ped_0'
 
 [[walker.pedestrians]]
 role_name = 'ped_0'
@@ -16,13 +16,13 @@ spawn_speed = 1.0
 
 [[walker.pedestrians]]
 role_name = 'ped_1'
-spawn_location = [118.0, 269.5, 0.0]
+spawn_location = [118.0, 269.0, 0.0]
 spawn_rotation = [0.0, 180.0, 0.0]
 destination = [100.0, 269.0, 0.0]
 spawn_speed = 1.0
 
-[obstacles]
-resolution = 10
-[[obstacles.borders]]
-start_point = [116.0, 270.0]
-end_point = [116.5, 268.5]
+#[obstacles]
+#resolution = 10
+#[[obstacles.borders]]
+#start_point = [116.0, 270.0]
+#end_point = [116.0, 268.5]

@@ -26,7 +26,7 @@ role_name = 'ped_2'
 spawn_location = [108.0, 271.0, 0.0]
 spawn_rotation = [0.0, 0.0, 0.0]
 destination = [129.0, 271.0, 0.0]
-spawn_speed = 4.0
+spawn_speed = 2.0
 
 [[walker.pedestrians]]
 role_name = 'ped_3'
@@ -76,3 +76,22 @@ spawn_location = [121.0, 273.0, 0.0]
 spawn_rotation = [0.0, 180.0, 0.0]
 destination = [100.0, 273.0, 0.0]
 spawn_speed = 1.0
+
+#[obstacles]
+#resolution = 10
+#
+#[[obstacles.borders]]
+#start_point = [119.0, 260.0]
+#end_point = [116.0, 270.0]
+#
+#[[obstacles.borders]]
+#start_point = [113.0, 260.0]
+#end_point = [116.0, 270.0]
+#
+#[[obstacles.borders]]
+#start_point = [119.0, 280.0]
+#end_point = [116.0, 272.0]
+#
+#[[obstacles.borders]]
+#start_point = [113.0, 272.0]
+#end_point = [116.0, 280.0]

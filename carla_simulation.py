@@ -20,6 +20,7 @@ class CarlaSimulation:
         self.step_length = step_length
         settings = self.world.get_settings()
         settings.synchronous_mode = True
+        settings.deterministic_ragdolls = True
         settings.fixed_delta_seconds = self.step_length
         self.world.apply_settings(settings)
 

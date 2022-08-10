@@ -1,11 +1,12 @@
 """Interaction potentials."""
+import math
 
 import numpy as np
 
 import stateutils
 
 
-class PedPedPotential(object):
+class PedPedPotential:
     """Ped-ped interaction potential.
 
     v0 is in m^2 / s^2.
@@ -37,7 +38,7 @@ class PedPedPotential(object):
 
     @staticmethod
     def r_ab(state):
-        """r_ab"""
+        """Construct r_ab using broadcasting."""
         r = state['loc']
         r_a = np.expand_dims(r, 1)
         r_b = np.expand_dims(r, 0)
@@ -96,7 +97,7 @@ class PedSpacePotential(object):
         if not self.space:
             return np.zeros((state.shape[0], 0, 2))
 
-        r_a = np.expand_dims(state['loc'][:,:2], 1)
+        r_a = np.expand_dims(state['loc'][:, :2], 1)
         closest_i = [
             np.argmin(np.linalg.norm(r_a - np.expand_dims(B, 0), axis=-1), axis=1)
             for B in self.space

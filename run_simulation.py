@@ -11,7 +11,7 @@ from carla_simulation import CarlaSimulation
 from pedestrian_simulation import PedestrianSimulation
 
 
-class SimulationRunner(object):
+class SimulationRunner:
     """
     SimulationRunner class is responsible for the synchronization of the Social-Force and CARLA
     simulations.

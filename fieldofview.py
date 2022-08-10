@@ -3,14 +3,14 @@
 import numpy as np
 
 
-class FieldOfView(object):
+class FieldOfView:
     """Compute field of view prefactors.
 
     The field of view angle twophi is given in degrees.
     out_of_view_factor is C in the paper.
     """
-    def __init__(self, twophi=200.0, out_of_view_factor=0.5):
-        self.cosphi = np.cos(twophi / 2.0 / 180.0 * np.pi)
+    def __init__(self, two_phi=200.0, out_of_view_factor=0.5):
+        self.cos_phi = np.cos(two_phi / 2.0 / 180.0 * np.pi)
         self.out_of_view_factor = out_of_view_factor
 
     def __call__(self, e, f):
@@ -24,7 +24,7 @@ class FieldOfView(object):
         angles = np.einsum('aj,abj->ab', e, f)
 
         # check if calculated angles are within field of view and apply weighting factor if not
-        in_sight = angles > np.linalg.norm(f, axis=-1) * self.cosphi
+        in_sight = angles > np.linalg.norm(f, axis=-1) * self.cos_phi
         out = self.out_of_view_factor * np.ones_like(in_sight)
         out[in_sight] = 1.0
         np.fill_diagonal(out, 0.0)
