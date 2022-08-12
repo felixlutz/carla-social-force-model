@@ -25,4 +25,4 @@ spawn_speed = 1.0
 #resolution = 10
 #[[obstacles.borders]]
 #start_point = [116.0, 270.0]
-#end_point = [116.0, 268.5]
+#end_point = [117.0, 268.5]

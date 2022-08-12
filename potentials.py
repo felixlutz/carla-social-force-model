@@ -1,5 +1,4 @@
 """Interaction potentials."""
-import math
 
 import numpy as np
 

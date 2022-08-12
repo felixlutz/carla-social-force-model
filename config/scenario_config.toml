@@ -11,14 +11,16 @@ spectator_focus = 'ped_4'
 role_name = 'ped_0'
 spawn_location = [109.0, 269.0, 0.0]
 spawn_rotation = [0.0, 0.0, 0.0]
-destination = [129.0, 269.0, 0.0]
+#destination = [129.0, 269.0, 0.0]
+destination = [129.0, 271.0, 0.0]
 spawn_speed = 0.5
 
 [[walker.pedestrians]]
 role_name = 'ped_1'
 spawn_location = [110.0, 270.0, 0.0]
 spawn_rotation = [0.0, 0.0, 0.0]
-destination = [129.0, 270.0, 0.0]
+#destination = [129.0, 270.0, 0.0]
+destination = [129.0, 271.0, 0.0]
 spawn_speed = 1.0
 
 [[walker.pedestrians]]
@@ -32,28 +34,32 @@ spawn_speed = 2.0
 role_name = 'ped_3'
 spawn_location = [107.0, 272.0, 0.0]
 spawn_rotation = [0.0, 0.0, 0.0]
-destination = [129.0, 272.0, 0.0]
+#destination = [129.0, 272.0, 0.0]
+destination = [129.0, 271.0, 0.0]
 spawn_speed = 1.0
 
 [[walker.pedestrians]]
 role_name = 'ped_4'
 spawn_location = [108.0, 273.0, 0.0]
 spawn_rotation = [0.0, 0.0, 0.0]
-destination = [129.0, 273.0, 0.0]
+#destination = [129.0, 273.0, 0.0]
+destination = [129.0, 271.0, 0.0]
 spawn_speed = 1.5
 
 [[walker.pedestrians]]
 role_name = 'ped_5'
 spawn_location = [118.0, 269.0, 0.0]
 spawn_rotation = [0.0, 180.0, 0.0]
-destination = [100.0, 269.0, 0.0]
+#destination = [100.0, 269.0, 0.0]
+destination = [100.0, 271.0, 0.0]
 spawn_speed = 1.0
 
 [[walker.pedestrians]]
 role_name = 'ped_6'
 spawn_location = [120.0, 270.0, 0.0]
 spawn_rotation = [0.0, 180.0, 0.0]
-destination = [100.0, 270.0, 0.0]
+#destination = [100.0, 270.0, 0.0]
+destination = [100.0, 271.0, 0.0]
 spawn_speed = 1.0
 
 [[walker.pedestrians]]
@@ -67,14 +73,16 @@ spawn_speed = 1.0
 role_name = 'ped_8'
 spawn_location = [120.0, 272.0, 0.0]
 spawn_rotation = [0.0, 180.0, 0.0]
-destination = [100.0, 272.0, 0.0]
+#destination = [100.0, 272.0, 0.0]
+destination = [100.0, 271.0, 0.0]
 spawn_speed = 1.5
 
 [[walker.pedestrians]]
 role_name = 'ped_9'
 spawn_location = [121.0, 273.0, 0.0]
 spawn_rotation = [0.0, 180.0, 0.0]
-destination = [100.0, 273.0, 0.0]
+#destination = [100.0, 273.0, 0.0]
+destination = [100.0, 271.0, 0.0]
 spawn_speed = 1.0
 
 #[obstacles]
@@ -93,5 +101,5 @@ spawn_speed = 1.0
 #end_point = [116.0, 272.0]
 #
 #[[obstacles.borders]]
-#start_point = [113.0, 272.0]
-#end_point = [116.0, 280.0]
+#start_point = [113.0, 280.0]
+#end_point = [116.0, 272.0]

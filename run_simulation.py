@@ -226,14 +226,6 @@ def spawn_pedestrians(spawn_points, spawn_speeds, carla_sim, scenario_config):
 
         walker_dict[role_name] = actor_id
 
-        # tick CARLA simulation to actually spawn walker
-        # carla_sim.tick()
-        #
-        # transform = carla_sim.get_ped_transform(actor_id)
-        # direction = transform.get_forward_vector()
-        # speed = spawn_speeds[role_name]
-        # carla_sim.set_ped_velocity(actor_id, direction, speed)
-
         # place spectator camera behind selected walker
         if spectator_focus == role_name:
             spectator = carla_sim.world.get_spectator()
@@ -280,7 +272,7 @@ def extract_obstacle_info(scenario_config):
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument('--scenario-config',
-                           default='config/minimal_scenario_config.toml',
+                           default='config/scenario_config.toml',
                            type=str,
                            help='scenario configuration file')
     argparser.add_argument('--sfm-config',
