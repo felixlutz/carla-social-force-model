@@ -209,12 +209,19 @@ def spawn_pedestrians(spawn_points, spawn_speeds, carla_sim, scenario_config):
     :return:
     """
     spectator_focus = scenario_config.get('walker').get('spectator_focus')
+    ped_seed = scenario_config.get('walker').get('pedestrian_seed', 2000)
 
     walker_dict = {}
-    for role_name, spawn_point in spawn_points.items():
+
+    # set pedestrian seed
+    carla_sim.world.set_pedestrians_seed(ped_seed)
+    random.seed(ped_seed)
+    random_bps = random.choices(carla_sim.walker_blueprints, k=len(spawn_points))
+
+    for i, (role_name, spawn_point) in enumerate(spawn_points.items()):
 
         # select random walker blueprint
-        walker_bp = random.choice(carla_sim.walker_blueprints)
+        walker_bp = random_bps[i]
 
         if walker_bp.has_attribute('role_name'):
             walker_bp.set_attribute('role_name', role_name)
@@ -272,7 +279,7 @@ def extract_obstacle_info(scenario_config):
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument('--scenario-config',
-                           default='config/scenario_config.toml',
+                           default='config/scenarios/sidewalk_scenario_config.toml',
                            type=str,
                            help='scenario configuration file')
     argparser.add_argument('--sfm-config',

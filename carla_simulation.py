@@ -8,8 +8,9 @@ class CarlaSimulation:
     def __init__(self, host, port, step_length, config):
 
         self.config = config
-        self.map_name = self.config['map']['map_name']
-        self.map_path = self.config['map']['map_path']
+        self.map_config = self.config['map']
+        self.map_name = self.map_config['map_name']
+        self.map_path = self.map_config['map_path']
 
         # connect to CARLA server
         self.client = carla.Client(host, port)
@@ -28,6 +29,17 @@ class CarlaSimulation:
         self.carla_map = self.world.get_map()
         if self.carla_map.name != self.map_path + self.map_name:
             self.world = self.client.load_world(self.map_name)
+
+        # set spectator
+        spectator_loc = self.map_config.get('spectator_location')
+        spectator_rot = self.map_config.get('spectator_rotation')
+
+        if spectator_loc is not None and spectator_rot is not None:
+            spectator = self.world.get_spectator()
+            spectator_transform = carla.Transform()
+            spectator_transform.location = carla.Location(spectator_loc[0], spectator_loc[1], spectator_loc[2])
+            spectator_transform.rotation = carla.Rotation(spectator_rot[0], spectator_rot[1], spectator_rot[2])
+            spectator.set_transform(spectator_transform)
 
         self.blueprint_library = self.world.get_blueprint_library()
         self.walker_blueprints = self.blueprint_library.filter('walker.pedestrian.*')

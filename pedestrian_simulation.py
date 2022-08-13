@@ -21,13 +21,20 @@ class PedestrianSimulation:
         self.forces = self.init_forces()
 
     def init_forces(self):
-        force_list = [
-            forces.PedestrianForce(self.delta_t, self.sfm_config),
-            forces.ObstacleForce(self.delta_t, self.sfm_config, self.obstacles),
-            forces.GoalAttractiveForce(self.delta_t, self.sfm_config),
-            # forces.PedRepulsiveForce(self.delta_t, self.sfm_config),
-            # forces.SpaceRepulsiveForce(self.delta_t, self.sfm_config, self.obstacles)
-        ]
+        activated_forces = self.sfm_config['forces']
+        force_list = []
+
+        # initialize social forces according to config
+        if activated_forces.get('goal_attractive_force', False):
+            force_list.append(forces.GoalAttractiveForce(self.delta_t, self.sfm_config))
+        if activated_forces.get('pedestrian_force', False):
+            force_list.append(forces.PedestrianForce(self.delta_t, self.sfm_config))
+        if activated_forces.get('obstacle_force', False):
+            force_list.append(forces.ObstacleForce(self.delta_t, self.sfm_config, self.obstacles))
+        if activated_forces.get('ped_repulsive_force', False):
+            force_list.append(forces.PedRepulsiveForce(self.delta_t, self.sfm_config))
+        if activated_forces.get('space_repulsive_force', False):
+            force_list.append(forces.SpaceRepulsiveForce(self.delta_t, self.sfm_config, self.obstacles))
 
         return force_list
 
