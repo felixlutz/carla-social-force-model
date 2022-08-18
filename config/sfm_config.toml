@@ -30,5 +30,5 @@ n_prime = 3.0 # 3.0 +- 0.7
 epsilon = 0.005
 
 [obstacle_force]
-a = 3.0
-b = 0.1
+a = 4.0
+b = 0.2

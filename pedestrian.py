@@ -4,7 +4,7 @@ import stateutils
 
 
 class PedState:
-    """Tracks the state of pedstrains and social groups"""
+    """Tracks the state of pedestrians"""
 
     def __init__(self, initial_state, step_length, sfm_config):
         self.sfm_config = sfm_config
@@ -17,6 +17,10 @@ class PedState:
 
         self.state = initial_state
         self.new_velocities = initial_state[['id', 'vel']]
+
+        # list of all states to record simulation
+        self.all_states = [self.state.copy()]
+
 
     def size(self) -> int:
         return self.state.shape[0]
@@ -60,6 +64,12 @@ class PedState:
 
     def desired_directions(self) -> np.ndarray:
         return stateutils.desired_directions(self.state)
+
+    def record_current_state(self):
+        self.all_states.append(self.state.copy())
+
+    def get_all_states(self):
+        return np.stack(self.all_states)
 
     @staticmethod
     def capped_velocity(desired_velocity, max_velocity) -> np.ndarray:

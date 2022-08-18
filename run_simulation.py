@@ -7,6 +7,7 @@ import carla
 import numpy as np
 import tomli
 
+import visualization
 from carla_simulation import CarlaSimulation
 from pedestrian_simulation import PedestrianSimulation
 
@@ -17,11 +18,16 @@ class SimulationRunner:
     simulations.
     """
 
-    def __init__(self, pedestrian_simulation, carla_simulation, walker_dict):
+    def __init__(self, pedestrian_simulation, carla_simulation, walker_dict, args):
 
         self.ped_sim = pedestrian_simulation
         self.carla_sim = carla_simulation
         self.walker_dict = walker_dict
+
+        self.plot = args.plot
+        self.animate = args.animate
+        self.output_path = args.output
+        self.step_length = args.step_length
 
     def tick(self):
         """
@@ -68,6 +74,13 @@ class SimulationRunner:
         for carla_actor_id in self.walker_dict.values():
             self.carla_sim.destroy_actor(carla_actor_id)
 
+        if self.plot:
+            with visualization.SceneVisualizer(self.ped_sim, self.output_path, self.step_length) as sv:
+                sv.plot()
+        if self.animate:
+            with visualization.SceneVisualizer(self.ped_sim, self.output_path, self.step_length) as sv:
+                sv.animate()
+
         # Closing pedestrian simulation and CARLA client.
         self.carla_sim.close()
         self.ped_sim.close()
@@ -82,21 +95,21 @@ def simulation_loop(args):
     scenario_config = load_config(args.scenario_config)
     sfm_config = load_config(args.sfm_config)
 
+    # extract obstacles for pedestrian simulation
+    obstacles, carla_obstacles = extract_obstacle_info(scenario_config)
+
     # initialize CARLA simulation
-    carla_simulation = CarlaSimulation(args.carla_host, args.carla_port, args.step_length, scenario_config)
+    carla_simulation = CarlaSimulation(args, scenario_config, carla_obstacles)
 
     # spawn initial pedestrians
-    spawn_points, spawn_speeds, initial_ped_state = extract_ped_info(scenario_config)
-    walker_dict = spawn_pedestrians(spawn_points, spawn_speeds, carla_simulation, scenario_config)
-
-    # extract obstacles for pedestrian simulation
-    obstacles = extract_obstacle_info(scenario_config)
+    spawn_points, initial_ped_state = extract_ped_info(scenario_config)
+    walker_dict = spawn_pedestrians(spawn_points, carla_simulation, scenario_config)
 
     # initialize pedestrian simulation
     pedestrian_simulation = PedestrianSimulation(initial_ped_state, obstacles, sfm_config,
                                                  walker_dict, args.step_length)
 
-    sim_runner = SimulationRunner(pedestrian_simulation, carla_simulation, walker_dict)
+    sim_runner = SimulationRunner(pedestrian_simulation, carla_simulation, walker_dict, args)
 
     # main simulation loop
     try:
@@ -161,7 +174,6 @@ def extract_ped_info(scenario_config):
     pedestrian_config = scenario_config['walker']['pedestrians']
 
     spawn_points = {}
-    spawn_speeds = {}
     ped_state_data = []
     for pedestrian in pedestrian_config:
 
@@ -181,9 +193,8 @@ def extract_ped_info(scenario_config):
         spawn_point.location = carla.Location(spawn_location[0], spawn_location[1], spawn_location[2])
         spawn_point.rotation = carla.Rotation(spawn_rotation[0], spawn_rotation[1], spawn_rotation[2])
 
-        # spawn points and spawn speeds for CARLA simulator
+        # spawn points for CARLA simulator
         spawn_points[role_name] = spawn_point
-        spawn_speeds[role_name] = speed
 
         direction = spawn_point.get_forward_vector()
         velocity = np.array([direction.x, direction.y, direction.z]) * speed
@@ -196,10 +207,10 @@ def extract_ped_info(scenario_config):
                        ('dest', 'f8', (3,)), ('tau', 'f8')]
     initial_ped_state = np.array(ped_state_data, dtype=ped_state_dtype)
 
-    return spawn_points, spawn_speeds, initial_ped_state
+    return spawn_points, initial_ped_state
 
 
-def spawn_pedestrians(spawn_points, spawn_speeds, carla_sim, scenario_config):
+def spawn_pedestrians(spawn_points, carla_sim, scenario_config):
     """
     Spawns the pedestrians in CARLA and places the spectator camera.
     :param spawn_points:
@@ -256,6 +267,7 @@ def extract_obstacle_info(scenario_config):
         obstacle_resolution = obstacle_config.get('resolution')
 
         obstacles = []
+        carla_obstacles = []
         for border in borders:
             start_point = np.array(border['start_point'])
             end_point = np.array(border['end_point'])
@@ -270,7 +282,11 @@ def extract_obstacle_info(scenario_config):
                                            np.linspace(start_point[1], end_point[1], samples)))
             obstacles.append(border_line)
 
-        return obstacles
+            start_carla = carla.Location(start_point[0], start_point[1], 0.4)
+            end_carla = carla.Location(end_point[0], end_point[1], 0.4)
+            carla_obstacles.append([start_carla, end_carla])
+
+        return obstacles, carla_obstacles
 
     else:
         return None
@@ -299,6 +315,12 @@ if __name__ == '__main__':
                            default=0.1,
                            type=float,
                            help='set fixed delta seconds (default: 0.1s)')
+    argparser.add_argument('--plot', action='store_true', help='plot pedestrian trajectories')
+    argparser.add_argument('--animate', action='store_true', help='animate pedestrian trajectories')
+    argparser.add_argument('--output',
+                           default='output/sim_run',
+                           type=str,
+                           help='path for output plot or animation')
     argparser.add_argument('--debug', action='store_true', help='enable debug messages')
     arguments = argparser.parse_args()
 

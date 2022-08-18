@@ -39,7 +39,10 @@ class PedestrianSimulation:
         return force_list
 
     def tick(self):
-        """Do one step in the simulation and update the state in place."""
+        """Do one step in the simulation"""
+
+        # record current state for plotting
+        self.peds.record_current_state()
 
         # skip social force calculations if pedestrian state matrix is empty
         if self.peds.size() == 0:
@@ -57,6 +60,12 @@ class PedestrianSimulation:
 
     def get_new_velocities(self):
         return self.peds.get_new_velocities()
+
+    def get_obstacles(self):
+        return self.obstacles
+
+    def get_states(self):
+        return self.peds.get_all_states()
 
 
 def add_walker_ids_to_ped_state(ped_state, walker_dict):

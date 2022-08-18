@@ -5,7 +5,7 @@ import carla
 
 class CarlaSimulation:
 
-    def __init__(self, host, port, step_length, config):
+    def __init__(self, args, config, obstacles):
 
         self.config = config
         self.map_config = self.config['map']
@@ -13,22 +13,22 @@ class CarlaSimulation:
         self.map_path = self.map_config['map_path']
 
         # connect to CARLA server
-        self.client = carla.Client(host, port)
+        self.client = carla.Client(args.carla_host, args.carla_port)
         self.client.set_timeout(10.0)
         self.world = self.client.get_world()
-
-        # Configuring CARLA simulation in sync mode.
-        self.step_length = step_length
-        settings = self.world.get_settings()
-        settings.synchronous_mode = True
-        settings.deterministic_ragdolls = True
-        settings.fixed_delta_seconds = self.step_length
-        self.world.apply_settings(settings)
 
         # load configured map
         self.carla_map = self.world.get_map()
         if self.carla_map.name != self.map_path + self.map_name:
             self.world = self.client.load_world(self.map_name)
+
+        # Configuring CARLA simulation in sync mode.
+        self.step_length = args.step_length
+        settings = self.world.get_settings()
+        settings.synchronous_mode = True
+        settings.deterministic_ragdolls = True
+        settings.fixed_delta_seconds = self.step_length
+        self.world.apply_settings(settings)
 
         # set spectator
         spectator_loc = self.map_config.get('spectator_location')
@@ -43,6 +43,11 @@ class CarlaSimulation:
 
         self.blueprint_library = self.world.get_blueprint_library()
         self.walker_blueprints = self.blueprint_library.filter('walker.pedestrian.*')
+
+        # draw obstacles
+        draw_obstacles = self.map_config.get('draw_obstacles', False)
+        if draw_obstacles:
+            self.draw_obstacles(obstacles)
 
     def tick(self):
         """
@@ -95,6 +100,11 @@ class CarlaSimulation:
         transform = walker.get_transform()
 
         return transform
+
+    def draw_obstacles(self, obstacles):
+        debug = self.world.debug
+        for obstacle in obstacles:
+            debug.draw_line(obstacle[0], obstacle[1], color=carla.Color(0, 0, 0, 0), thickness=0.05, life_time=0)
 
     def close(self):
         pass
