@@ -81,10 +81,6 @@ class SceneVisualizer:
         # invert y-axis by switching y_min and y_max, because CARLA uses left-hand coordinate system
         self.ax.set(xlim=(xy_min[0], xy_max[0]), ylim=(xy_max[1], xy_min[1]))
 
-        # # recompute the ax.dataLim
-        # self.ax.relim()
-        # # update ax.viewLim using the new dataLim
-        # self.ax.autoscale_view()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
@@ -111,13 +107,11 @@ class SceneVisualizer:
         :return: list of patches
         """
         current_state = self.states[step]
-        # radius = 0.2 + np.linalg.norm(current_state[:, 2:4], axis=-1) / 2.0 * 0.3
         radius = [0.2] * current_state.shape[0]
         if self.human_actors:
             for i, human in enumerate(self.human_actors):
                 human.center = current_state[i]['loc']
                 human.set_radius(0.2)
-                # human.set_radius(radius[i])
         else:
             self.human_actors = [
                 Circle(pos, radius=r) for pos, r in zip(current_state[:]['loc'], radius)
@@ -133,8 +127,11 @@ class SceneVisualizer:
             self.human_collection.set_facecolor(self.agent_colors)
 
     def plot_obstacles(self):
-        for s in self.scene.get_obstacles():
-            self.ax.plot(s[:, 0], s[:, 1], lw=2, color='black')
+        obstacles = self.scene.get_obstacles()
+
+        if obstacles is not None:
+            for o in obstacles:
+                self.ax.plot(o[:, 0], o[:, 1], lw=2, color='black')
 
     def animation_init(self):
         self.plot_obstacles()

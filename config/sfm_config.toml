@@ -1,4 +1,5 @@
 max_speed_multiplier = 1.3
+use_ped_radius = false
 
 [forces]
 goal_attractive_force = true
@@ -31,4 +32,4 @@ epsilon = 0.005
 
 [obstacle_force]
 a = 4.0
-b = 0.2
+b = 0.1

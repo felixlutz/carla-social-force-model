@@ -101,10 +101,22 @@ class CarlaSimulation:
 
         return transform
 
+    def get_ped_radius(self, walker_id):
+        walker = self.world.get_actor(walker_id)
+        extent = walker.bounding_box.extent
+        radius = max([extent.x, extent.y])
+        return radius
+
     def draw_obstacles(self, obstacles):
         debug = self.world.debug
         for obstacle in obstacles:
             debug.draw_line(obstacle[0], obstacle[1], color=carla.Color(0, 0, 0, 0), thickness=0.05, life_time=0)
+
+    def draw_bounding_box(self, actor_id, step_length):
+        actor = self.world.get_actor(actor_id)
+        bb = carla.BoundingBox(actor.get_location(), actor.bounding_box.extent)
+        self.world.debug.draw_box(bb, actor.get_transform().rotation, color=carla.Color(0, 0, 0, 0), thickness=0.01,
+                                  life_time=step_length + 0.00000001)
 
     def close(self):
         pass

@@ -18,11 +18,13 @@ class SimulationRunner:
     simulations.
     """
 
-    def __init__(self, pedestrian_simulation, carla_simulation, walker_dict, args):
+    def __init__(self, pedestrian_simulation, carla_simulation, walker_dict, scenario_config, args):
 
         self.ped_sim = pedestrian_simulation
         self.carla_sim = carla_simulation
         self.walker_dict = walker_dict
+        self.scenario_config = scenario_config
+        self.draw_bounding_boxes = scenario_config['walker'].get('draw_bounding_boxes', False)
 
         self.plot = args.plot
         self.animate = args.animate
@@ -47,6 +49,9 @@ class SimulationRunner:
 
             self.ped_sim.update_ped_info(actor_id, location, velocity)
 
+            if self.draw_bounding_boxes:
+                self.carla_sim.draw_bounding_box(actor_id, self.step_length)
+
         # Tick pedestrian simulation and propagate new velocities resulting from social force model to CARLA
         self.ped_sim.tick()
         new_velocities = self.ped_sim.get_new_velocities()
@@ -55,7 +60,8 @@ class SimulationRunner:
             new_velocity = velocity['vel']
 
             speed = np.linalg.norm(new_velocity)
-            new_velocity = new_velocity / speed
+            if speed != 0.0:
+                new_velocity = new_velocity / speed
             direction = carla.Vector3D(new_velocity[0], new_velocity[1], new_velocity[2])
 
             self.carla_sim.set_ped_velocity(walker_id, direction, speed)
@@ -103,13 +109,13 @@ def simulation_loop(args):
 
     # spawn initial pedestrians
     spawn_points, initial_ped_state = extract_ped_info(scenario_config)
-    walker_dict = spawn_pedestrians(spawn_points, carla_simulation, scenario_config)
+    walker_dict = spawn_pedestrians(spawn_points, carla_simulation, scenario_config, initial_ped_state)
 
     # initialize pedestrian simulation
     pedestrian_simulation = PedestrianSimulation(initial_ped_state, obstacles, sfm_config,
                                                  walker_dict, args.step_length)
 
-    sim_runner = SimulationRunner(pedestrian_simulation, carla_simulation, walker_dict, args)
+    sim_runner = SimulationRunner(pedestrian_simulation, carla_simulation, walker_dict, scenario_config, args)
 
     # main simulation loop
     try:
@@ -198,19 +204,22 @@ def extract_ped_info(scenario_config):
 
         direction = spawn_point.get_forward_vector()
         velocity = np.array([direction.x, direction.y, direction.z]) * speed
-        walker_id = -1  # set invalid walker id that gets replaced as soon as the walker is actually spawned
 
-        ped_state_data.append((role_name, walker_id, spawn_location, velocity, destination, tau))
+        # set invalid walker id and default radius that get replaced as soon as the walker is actually spawned
+        walker_id = -1
+        radius = 0.2
+
+        ped_state_data.append((role_name, walker_id, spawn_location, velocity, destination, radius, tau))
 
     # initial pedestrian state matrix for social force simulator
     ped_state_dtype = [('name', 'U8'), ('id', 'i4'), ('loc', 'f8', (3,)), ('vel', 'f8', (3,)),
-                       ('dest', 'f8', (3,)), ('tau', 'f8')]
+                       ('dest', 'f8', (3,)), ('radius', 'f8'), ('tau', 'f8')]
     initial_ped_state = np.array(ped_state_data, dtype=ped_state_dtype)
 
     return spawn_points, initial_ped_state
 
 
-def spawn_pedestrians(spawn_points, carla_sim, scenario_config):
+def spawn_pedestrians(spawn_points, carla_sim, scenario_config, initial_ped_state):
     """
     Spawns the pedestrians in CARLA and places the spectator camera.
     :param spawn_points:
@@ -243,6 +252,10 @@ def spawn_pedestrians(spawn_points, carla_sim, scenario_config):
             continue
 
         walker_dict[role_name] = actor_id
+
+        walker_radius = carla_sim.get_ped_radius(actor_id)
+        initial_ped_state['radius'][initial_ped_state['name'] == role_name] = walker_radius
+        initial_ped_state['id'][initial_ped_state['name'] == role_name] = actor_id
 
         # place spectator camera behind selected walker
         if spectator_focus == role_name:
@@ -289,13 +302,13 @@ def extract_obstacle_info(scenario_config):
         return obstacles, carla_obstacles
 
     else:
-        return None
+        return None, None
 
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument('--scenario-config',
-                           default='config/scenarios/sidewalk_scenario_config.toml',
+                           default='config/scenarios/circle_scenario_config.toml',
                            type=str,
                            help='scenario configuration file')
     argparser.add_argument('--sfm-config',

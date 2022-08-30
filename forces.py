@@ -15,6 +15,7 @@ class Force(ABC):
         super().__init__()
         self.step_length = step_length
         self.sfm_config = sfm_config
+        self.use_ped_radius = sfm_config.get('use_ped_radius', False)
 
     @abstractmethod
     def _get_force(self, ped_state) -> np.ndarray:
@@ -44,7 +45,9 @@ class GoalAttractiveForce(Force):
 
 
 class PedRepulsiveForce(Force):
-    """Ped to ped repulsive force based on the original paper from Helbing and Molnár (1995)"""
+    """Ped to ped repulsive force based on the original paper "Social force model for pedestrian dynamics"
+    from Helbing and Molnár (1995)
+    """
 
     def __init__(self, step_length, sfm_config):
         super().__init__(step_length, sfm_config)
@@ -64,7 +67,8 @@ class PedRepulsiveForce(Force):
 
 
 class SpaceRepulsiveForce(Force):
-    """Obstacles to ped repulsive force based on the original paper from Helbing and Molnár (1995)"""
+    """Obstacles to ped repulsive force based on the original paper "Social force model for pedestrian dynamics"
+    from Helbing and Molnár (1995)"""
 
     def __init__(self, step_length, sfm_config, obstacles):
         super().__init__(step_length, sfm_config)
@@ -88,8 +92,8 @@ class SpaceRepulsiveForce(Force):
 
 
 class PedestrianForce(Force):
-    """Calculates the social force between this agent and all the other agents
-    belonging to the same scene.
+    """Calculates the social force between pedestrians based on the paper "Experimental study of the behavioural
+    mechanisms underlying self-organization in human crowds" form Moussaïd et. al (2009)
     """
 
     def __init__(self, step_length, sfm_config):
@@ -108,6 +112,11 @@ class PedestrianForce(Force):
         loc_diff = stateutils.all_diffs(peds.loc())
         diff_direction, diff_length = stateutils.normalize(loc_diff)
         vel_diff = -1.0 * stateutils.all_diffs(peds.vel())
+
+        # subtract the radii of the pedestrians from the distances between each other
+        if self.use_ped_radius:
+            sum_radii = stateutils.all_sums(peds.radius())
+            diff_length -= sum_radii
 
         # compute interaction direction t_ij
         interaction_vec = self.lambda_weight * vel_diff + diff_direction
@@ -145,8 +154,8 @@ class PedestrianForce(Force):
 
 
 class ObstacleForce(Force):
-    """Calculates the force between this agent and the nearest obstacle in this
-    scene.
+    """Calculates the force between pedestrians and the nearest obstacle based on the paper "Experimental study of
+    the behavioural mechanisms underlying self-organization in human crowds" form Moussaïd et. al (2009)
     """
 
     def __init__(self, step_length, sfm_config, obstacles):
@@ -172,6 +181,9 @@ class ObstacleForce(Force):
             0, 1)  # index order: pedestrian, boundary, coordinates
 
         direction, distance = stateutils.normalize(ped_loc - closest_points)
+
+        if self.use_ped_radius:
+            distance = distance - np.expand_dims(peds.radius(), -1)
 
         force = direction * self.a * np.exp(-1.0 * np.expand_dims(distance, -1) / self.b)
 

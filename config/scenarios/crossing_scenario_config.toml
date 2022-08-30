@@ -1,0 +1,190 @@
+[map]
+map_name = 'Town10HD_Opt'
+map_path = 'Carla/Maps/'
+draw_obstacles = true
+sumo_coordinates = false
+spectator_location = [-54.0, 28.0, 20]
+spectator_rotation = [-90.0, 0.0, 0.0]
+
+[walker]
+pedestrian_seed = 2015
+#spectator_focus = 'ped_4'
+draw_bounding_boxes = false
+ai_controller = false
+
+[[walker.pedestrians]]
+role_name = 'ped_0'
+spawn_location = [-52.3, 45.6, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-52.3, 0.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_1'
+spawn_location = [-51.0, 44.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-51.0, 0.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_2'
+spawn_location = [-53.0, 44.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-53.0, 0.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_3'
+spawn_location = [-51.3, 46.5, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-51.3, 0.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_4'
+spawn_location = [-52.0, 47.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-52.0, 0.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_5'
+spawn_location = [-53.1, 46.7, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-53.1, 0.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_6'
+spawn_location = [-51.0, 48.5, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-51.0, 0.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_7'
+spawn_location = [-52.0, 49.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-52.0, 0.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_8'
+spawn_location = [-53.0, 48.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-53.0, 0.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_9'
+spawn_location = [-51.0, 50.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-51.0, 0.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_10'
+spawn_location = [-73.0, 29.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-25.0, 29.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_11'
+spawn_location = [-73.0, 28.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-25.0, 28.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_12'
+spawn_location = [-72.0, 27.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-25.0, 27.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_13'
+spawn_location = [-72.0, 29.5, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-25.0, 29.5, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_14'
+spawn_location = [-68.0, 27.3, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-25.0, 27.3, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_15'
+spawn_location = [-69.5, 29.3, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-25.0, 29.3, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_16'
+spawn_location = [-69.0, 28.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-25.0, 28.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_17'
+spawn_location = [-70.0, 26.5, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-25.0, 26.5, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_18'
+spawn_location = [-70.0, 29.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-25.0, 29.0, 0.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_19'
+spawn_location = [-70.9, 27.9, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [-25.0, 27.9, 0.0]
+spawn_speed = 1.0
+
+[obstacles]
+resolution = 10
+
+# lane 1
+[[obstacles.borders]]
+start_point = [-53.9, 59.8]
+end_point = [-53.9, 29.8]
+
+[[obstacles.borders]]
+start_point = [-53.9, 26.3]
+end_point = [-53.9, -6.3]
+
+[[obstacles.borders]]
+start_point = [-50.4, 59.8]
+end_point = [-50.4, 29.8]
+
+[[obstacles.borders]]
+start_point = [-50.4, 26.3]
+end_point = [-50.4, -6.3]
+
+#lane 2
+[[obstacles.borders]]
+start_point = [-83.9, 29.8]
+end_point = [-53.9, 29.8]
+
+[[obstacles.borders]]
+start_point = [-50.4, 29.8]
+end_point = [-20.4, 29.8]
+
+[[obstacles.borders]]
+start_point = [-83.9, 26.3]
+end_point = [-53.9, 26.3]
+
+[[obstacles.borders]]
+start_point = [-50.4, 26.3]
+end_point = [-20.4, 26.3]

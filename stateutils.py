@@ -22,10 +22,10 @@ def speeds(state) -> np.ndarray:
 def all_diffs(array, remove_diagonal=True, keep_dims=True) -> np.ndarray:
     """
     Calculate the differences of every element in the array with all other elements using broadcasting.
-    :param keep_dims:
     :param array: input array
-    :param remove_diagonal: bool determining if the diagonal values of the diff matrix(diff of an element with itself)
+    :param remove_diagonal: bool determining if the diagonal values of the diff matrix (diff of an element with itself)
                             will be removed
+    :param keep_dims: bool determining if the dimensions of the diff matrix are kept after removing the diagonal
     :return: diff matrix
     """
     diff_matrix = np.expand_dims(array, 1) - np.expand_dims(array, 0)
@@ -33,10 +33,36 @@ def all_diffs(array, remove_diagonal=True, keep_dims=True) -> np.ndarray:
     if remove_diagonal:
         diff_matrix = diff_matrix[~np.eye(diff_matrix.shape[0], dtype=bool), :]
 
-    if keep_dims:
-        diff_matrix = diff_matrix.reshape(array.shape[0], -1, array.shape[1])
+        if keep_dims:
+
+            if array.ndim > 1:
+                diff_matrix = diff_matrix.reshape(array.shape[0], -1, array.shape[1])
+            else:
+                diff_matrix = diff_matrix.reshape(array.shape[0], -1)
 
     return diff_matrix
+
+
+def all_sums(array, remove_diagonal=True, keep_dims=True) -> np.ndarray:
+    """
+    Calculate the sums of every element in the array with all other elements using broadcasting.
+    :param array: input array
+    :param remove_diagonal: bool determining if the diagonal values of the sum matrix (sum of an element with itself)
+                            will be removed
+    :param keep_dims: bool determining if the dimensions of the sum matrix are kept after removing the diagonal
+    :return: sum matrix
+    """
+    sum_matrix = np.expand_dims(array, 1) + np.expand_dims(array, 0)
+
+    if remove_diagonal:
+        sum_matrix = sum_matrix[~np.eye(sum_matrix.shape[0], dtype=bool), ...]
+
+        if array.ndim > 1:
+            sum_matrix = sum_matrix.reshape(array.shape[0], -1, array.shape[1])
+        else:
+            sum_matrix = sum_matrix.reshape(array.shape[0], -1)
+
+    return sum_matrix
 
 
 def normalize(array, axis=-1) -> Tuple[np.ndarray, np.ndarray]:

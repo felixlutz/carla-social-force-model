@@ -12,7 +12,7 @@ class PedestrianSimulation:
         self.obstacles = obstacles
 
         # update pedestrian states with correct CARLA actor ids
-        self.initial_ped_state = add_walker_ids_to_ped_state(initial_ped_state, walker_dict)
+        self.initial_ped_state = clean_up_ped_state(initial_ped_state)
         print(*self.initial_ped_state, sep="\n")
 
         self.peds = PedState(self.initial_ped_state, step_length, sfm_config)
@@ -68,10 +68,7 @@ class PedestrianSimulation:
         return self.peds.get_all_states()
 
 
-def add_walker_ids_to_ped_state(ped_state, walker_dict):
-    for pedestrian in ped_state:
-        role_name = pedestrian[0]
-        pedestrian[1] = walker_dict.get(role_name, -1)
+def clean_up_ped_state(ped_state):
 
     updated_ped_state = np.delete(ped_state, np.where(ped_state['id'] == -1)[0], axis=0)
 
