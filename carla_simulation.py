@@ -5,12 +5,13 @@ import carla
 
 class CarlaSimulation:
 
-    def __init__(self, args, config, obstacles):
+    def __init__(self, args, config):
 
         self.config = config
         self.map_config = self.config['map']
         self.map_name = self.map_config['map_name']
         self.map_path = self.map_config['map_path']
+        self.draw_obstacles = self.map_config.get('draw_obstacles', False)
 
         # connect to CARLA server
         self.client = carla.Client(args.carla_host, args.carla_port)
@@ -43,11 +44,6 @@ class CarlaSimulation:
 
         self.blueprint_library = self.world.get_blueprint_library()
         self.walker_blueprints = self.blueprint_library.filter('walker.pedestrian.*')
-
-        # draw obstacles
-        draw_obstacles = self.map_config.get('draw_obstacles', False)
-        if draw_obstacles:
-            self.draw_obstacles(obstacles)
 
     def tick(self):
         """
@@ -107,16 +103,19 @@ class CarlaSimulation:
         radius = max([extent.x, extent.y])
         return radius
 
-    def draw_obstacles(self, obstacles):
-        debug = self.world.debug
-        for obstacle in obstacles:
-            debug.draw_line(obstacle[0], obstacle[1], color=carla.Color(0, 0, 0, 0), thickness=0.05, life_time=0)
+    def draw_lines(self, lines):
+        for line in lines:
+            self.world.debug.draw_line(line[0], line[1], color=carla.Color(0, 0, 0, 0), thickness=0.05, life_time=0)
 
     def draw_bounding_box(self, actor_id, step_length):
         actor = self.world.get_actor(actor_id)
         bb = carla.BoundingBox(actor.get_location(), actor.bounding_box.extent)
         self.world.debug.draw_box(bb, actor.get_transform().rotation, color=carla.Color(0, 0, 0, 0), thickness=0.01,
                                   life_time=step_length + 0.00000001)
+
+    def draw_points(self, points):
+        for point in points:
+            self.world.debug.draw_point(point, size=0.05, life_time=0)
 
     def close(self):
         pass

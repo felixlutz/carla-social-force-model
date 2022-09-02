@@ -10,6 +10,7 @@ import tomli
 import visualization
 from carla_simulation import CarlaSimulation
 from pedestrian_simulation import PedestrianSimulation
+from sidewalk import extract_sidewalk
 
 
 class SimulationRunner:
@@ -101,18 +102,28 @@ def simulation_loop(args):
     scenario_config = load_config(args.scenario_config)
     sfm_config = load_config(args.sfm_config)
 
-    # extract obstacles for pedestrian simulation
-    obstacles, carla_obstacles = extract_obstacle_info(scenario_config)
-
     # initialize CARLA simulation
-    carla_simulation = CarlaSimulation(args, scenario_config, carla_obstacles)
+    carla_simulation = CarlaSimulation(args, scenario_config)
+
+    # extract obstacle borders from scenario config
+    obstacle_borders, carla_obstacle_borders = extract_obstacle_info(scenario_config)
+
+    # extract sidewalk borders from map and add to other obstacle borders
+    sidewalk_borders, carla_sidewalk_borders = extract_sidewalk(carla_simulation.carla_map, scenario_config)
+    obstacle_borders.extend(sidewalk_borders)
+    carla_obstacle_borders.extend(carla_sidewalk_borders)
+
+    # draw obstacles
+    if carla_simulation.draw_obstacles:
+        for border in carla_obstacle_borders:
+            carla_simulation.draw_points(border)
 
     # spawn initial pedestrians
     spawn_points, initial_ped_state = extract_ped_info(scenario_config)
     walker_dict = spawn_pedestrians(spawn_points, carla_simulation, scenario_config, initial_ped_state)
 
     # initialize pedestrian simulation
-    pedestrian_simulation = PedestrianSimulation(initial_ped_state, obstacles, sfm_config,
+    pedestrian_simulation = PedestrianSimulation(initial_ped_state, obstacle_borders, sfm_config,
                                                  walker_dict, args.step_length)
 
     sim_runner = SimulationRunner(pedestrian_simulation, carla_simulation, walker_dict, scenario_config, args)
@@ -275,12 +286,12 @@ def extract_obstacle_info(scenario_config):
     sumo_offset = scenario_config.get('map').get('sumo_offset')
     obstacle_config = scenario_config.get('obstacles')
 
+    obstacles = []
+    carla_obstacles = []
     if obstacle_config is not None:
         borders = obstacle_config.get('borders', [])
-        obstacle_resolution = obstacle_config.get('resolution')
+        obstacle_resolution = obstacle_config.get('resolution', 0.1)
 
-        obstacles = []
-        carla_obstacles = []
         for border in borders:
             start_point = np.array(border['start_point'])
             end_point = np.array(border['end_point'])
@@ -289,26 +300,21 @@ def extract_obstacle_info(scenario_config):
                 start_point = convert_coordinates(start_point, sumo_offset)
                 end_point = convert_coordinates(end_point, sumo_offset)
 
-            samples = int(np.linalg.norm(end_point - start_point) * obstacle_resolution)
+            samples = int(np.linalg.norm(end_point - start_point) / obstacle_resolution)
 
             border_line = np.column_stack((np.linspace(start_point[0], end_point[0], samples),
                                            np.linspace(start_point[1], end_point[1], samples)))
             obstacles.append(border_line)
 
-            start_carla = carla.Location(start_point[0], start_point[1], 0.4)
-            end_carla = carla.Location(end_point[0], end_point[1], 0.4)
-            carla_obstacles.append([start_carla, end_carla])
+            carla_obstacles.append([carla.Vector3D(p[0], p[1], 0) for p in border_line])
 
-        return obstacles, carla_obstacles
-
-    else:
-        return None, None
+    return obstacles, carla_obstacles
 
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument('--scenario-config',
-                           default='config/scenarios/circle_scenario_config.toml',
+                           default='config/scenarios/sidewalk_scenario_config.toml',
                            type=str,
                            help='scenario configuration file')
     argparser.add_argument('--sfm-config',
