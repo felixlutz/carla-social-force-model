@@ -1,0 +1,156 @@
+[map]
+map_name = 'Town10HD_Opt'
+map_path = 'Carla/Maps/'
+draw_obstacles = false
+sumo_coordinates = false
+spectator_location = [80.0, -5.0, 20]
+spectator_rotation = [-90.0, 0.0, 0.0]
+
+[walker]
+pedestrian_seed = 2020
+#spectator_focus = 'ped_4'
+draw_bounding_boxes = false
+ai_controller = true
+
+[[walker.pedestrians]]
+role_name = 'ped_0'
+spawn_location = [90.0, -5.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [70.0, -5.0, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_1'
+spawn_location = [89.51, -1.91, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [70.49, -8.09, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_2'
+spawn_location = [88.09, 0.88, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [71.91, -10.88, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_3'
+spawn_location = [85.88, 3.09, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [74.12, -13.09, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_4'
+spawn_location = [83.09, 4.51, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [76.91, -14.51, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_5'
+spawn_location = [80.0, 5.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [80.0, -15.0, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_6'
+spawn_location = [76.91, 4.51, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [83.09, -14.51, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_7'
+spawn_location = [74.12, 3.09, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [85.88, -13.09, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_8'
+spawn_location = [71.91, 0.88, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [88.09, -10.88, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_9'
+spawn_location = [70.49, -1.91, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [89.51, -8.09, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_10'
+spawn_location = [70.0, -5.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [90.0, -5.0, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_11'
+spawn_location = [70.49, -8.09, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [89.51, -1.91, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_12'
+spawn_location = [71.91, -10.88, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [88.09, 0.88, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_13'
+spawn_location = [74.12, -13.09, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [85.88, 3.09, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_14'
+spawn_location = [76.91, -14.51, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [83.09, 4.51, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_15'
+spawn_location = [80.0, -15.0, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [80.0, 5.0, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_16'
+spawn_location = [83.09, -14.51, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [76.91, 4.51, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_17'
+spawn_location = [85.88, -13.09, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [74.12, 3.09, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_18'
+spawn_location = [88.09, -10.88, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [71.91, 0.88, 1.0]
+spawn_speed = 1.0
+
+[[walker.pedestrians]]
+role_name = 'ped_19'
+spawn_location = [89.51, -8.09, 1.0]
+spawn_rotation = [0.0, 0.0, 0.0]
+destination = [70.49, -1.91, 1.0]
+spawn_speed = 1.0
+
+
+

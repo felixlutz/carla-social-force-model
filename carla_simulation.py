@@ -11,6 +11,7 @@ class CarlaSimulation:
         self.map_config = self.config['map']
         self.map_name = self.map_config['map_name']
         self.map_path = self.map_config['map_path']
+        self.unload_props = self.map_config.get('unload_props', False)
         self.draw_obstacles = self.map_config.get('draw_obstacles', False)
 
         # connect to CARLA server
@@ -23,7 +24,13 @@ class CarlaSimulation:
         if self.carla_map.name != self.map_path + self.map_name:
             self.world = self.client.load_world(self.map_name)
 
+        # unload props
+        if self.unload_props:
+            self.world.unload_map_layer(carla.MapLayer.Props)
+            self.world.unload_map_layer(carla.MapLayer.StreetLights)
+
         # Configuring CARLA simulation in sync mode.
+        self.original_settings = self.world.get_settings()
         self.step_length = args.step_length
         settings = self.world.get_settings()
         settings.synchronous_mode = True
@@ -118,4 +125,6 @@ class CarlaSimulation:
             self.world.debug.draw_point(point, size=0.05, life_time=0)
 
     def close(self):
-        pass
+
+        # reset CARLA simulation settings
+        self.world.apply_settings(self.original_settings)

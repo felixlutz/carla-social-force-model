@@ -71,12 +71,6 @@ class SimulationRunner:
         """
         Cleans synchronization.
         """
-        # Configuring CARLA simulation in async mode.
-        settings = self.carla_sim.world.get_settings()
-        settings.synchronous_mode = False
-        settings.fixed_delta_seconds = None
-        self.carla_sim.world.apply_settings(settings)
-
         # Destroying synchronized actors.
         for carla_actor_id in self.walker_dict.values():
             self.carla_sim.destroy_actor(carla_actor_id)
