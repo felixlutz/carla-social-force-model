@@ -1,3 +1,9 @@
+import glob
+import hashlib
+import logging
+import os
+import time
+
 import carla
 import numpy as np
 
@@ -5,14 +11,62 @@ import numpy as np
 def extract_sidewalk(carla_map, scenario_config):
     """
     Extracts sidewalk borders form Carla map (based on the underlying OpenDRIVE map) as a list of points.
+    A cache system is used, so if the OpenDrive content of a Carla town and the obstacle resolution has not changed,
+    it will read and use the stored sidewalk borders that were extracted in a previous simulation run.
     :param carla_map:
     :param scenario_config:
-    :return: borders (list of numpy arrays), carla_borders (list of Carla Vector3d)
+    :return: numpy_borders (list of numpy arrays), carla_borders (list of Carla Vector3d)
     """
 
+    logging.info('Start extracting sidewalks.')
+    start = time.time()
     # distance between extracted border points
     resolution = scenario_config.get('obstacles', {}).get('resolution', 0.1)
 
+    # Load OpenDrive content
+    opendrive_content = carla_map.to_opendrive()
+
+    # Get hash based on content
+    hash_func = hashlib.sha1()
+    hash_func.update(opendrive_content.encode('UTF-8'))
+    opendrive_hash = str(hash_func.hexdigest())
+
+    # Build path for saving or loading the cached rendered map
+    filename = carla_map.name.split('/')[-1] + '_' + str(resolution) + '_' + opendrive_hash + '.npy'
+    dirname = os.path.join('cache', 'sidewalk_borders')
+    full_path = str(os.path.join(dirname, filename))
+
+    if os.path.isfile(full_path):
+        # Load sidewalk borders from cache file
+        logging.info('Using cached sidewalk borders.')
+        numpy_borders = np.load(full_path, allow_pickle=True)
+        carla_borders = [[carla.Vector3D(p[0], p[1], 0.5) for p in border] for border in numpy_borders]
+
+    else:
+        carla_borders = extract_sidewalk_borders(carla_map, resolution)
+
+        # convert carla Vector3d to numpy arrays
+        numpy_borders = [np.array([[vec.x, vec.y] for vec in border]) for border in carla_borders]
+
+        # If folders path does not exist, create it
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+
+        # Remove files if selected town had a previous version saved
+        list_filenames = glob.glob(os.path.join(dirname, carla_map.name.split('/')[-1]) + "*")
+        for town_filename in list_filenames:
+            os.remove(town_filename)
+
+        # Save sidewalk borders for next executions of same map
+        np.save(full_path, numpy_borders)
+
+    end = time.time()
+    logging.info('Finished extracting sidewalks. Time: ' + str(end - start))
+
+    return numpy_borders, carla_borders
+
+
+def extract_sidewalk_borders(carla_map, resolution):
     # get topology (minimal graph of OpenDRIVE map), which consists of a list of tuples of
     # waypoints (start of road, end of road)
     carla_topology = carla_map.get_topology()
@@ -99,10 +153,7 @@ def extract_sidewalk(carla_map, scenario_config):
             carla_borders.append(border_left)
             carla_borders.append(border_right)
 
-    # convert carla Vector3d to numpy arrays
-    borders = [np.array([[vec.x, vec.y] for vec in border]) for border in carla_borders]
-
-    return borders, carla_borders
+    return carla_borders
 
 
 def lateral_shift(transform, shift):
