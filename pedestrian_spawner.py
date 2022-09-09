@@ -25,6 +25,7 @@ class PedSpawnManager:
 
         self.ped_index = 0
         self.walker_dict = {}
+        self.waypoint_dict = {}
 
     def tick(self, sim_time):
 
@@ -52,7 +53,7 @@ class PedSpawnManager:
 
                 spawn_location = np.array(spawn_point['spawn_location'])
                 speed = spawn_point['speed']
-                destination = np.array(spawn_point['destination'])
+                waypoints = np.array(spawn_point['waypoints'])
                 quantity = spawn_point.get('quantity', 1)
                 spawn_time = spawn_point.get('spawn_time', 0.0)
                 spawn_interval = spawn_point.get('spawn_interval')
@@ -60,9 +61,9 @@ class PedSpawnManager:
                 # convert coordinates if they are from SUMO simulator
                 if sumo_coordinates and sumo_offset is not None:
                     spawn_location = convert_coordinates(spawn_location, sumo_offset)
-                    destination = convert_coordinates(destination, sumo_offset)
+                    np.apply_along_axis(convert_coordinates, 1, waypoints)
 
-                ped_spawner = PedSpawner(spawn_location, destination, speed, quantity, spawn_time, spawn_interval)
+                ped_spawner = PedSpawner(spawn_location, waypoints, speed, quantity, spawn_time, spawn_interval)
                 ped_spawners.append(ped_spawner)
 
         return ped_spawners
@@ -91,8 +92,8 @@ class PedSpawnManager:
 
             ped_radius = self.carla_sim.get_ped_radius(actor_id)
 
-            ped_info = ped_spawner.generate_ped_state(ped_name, actor_id, ped_radius)
-
+            ped_info, remaining_waypoints = ped_spawner.generate_ped_state(ped_name, actor_id, ped_radius)
+            self.waypoint_dict[ped_name] = remaining_waypoints
             self.ped_sim.spawn_pedestrian(ped_info)
 
             # place spectator camera behind selected walker
@@ -113,14 +114,20 @@ class PedSpawnManager:
 
 
 class PedSpawner:
-    def __init__(self, spawn_location, destination, speed, quantity, spawn_time, spawn_interval):
+    def __init__(self, spawn_location, waypoints, speed, quantity, spawn_time, spawn_interval):
         self.spawn_location = spawn_location
-        self.destination = destination
+
+        if waypoints.ndim > 1:
+            self.first_waypoint = waypoints[0]
+            self.remaining_waypoints = waypoints[1:].tolist()
+        else:
+            self.first_waypoint = waypoints
+            self.remaining_waypoints = []
         self.target_speed = speed
         self.quantity = quantity
         self.spawn_interval = spawn_interval
 
-        self.carla_spawn_point = generate_carla_spawn_point(spawn_location, destination)
+        self.carla_spawn_point = generate_carla_spawn_point(spawn_location, self.first_waypoint)
         direction = self.carla_spawn_point.get_forward_vector()
         self.velocity = np.array([direction.x, direction.y, direction.z]) * speed
 
@@ -135,15 +142,16 @@ class PedSpawner:
             return False
 
     def generate_ped_state(self, name, carla_id, radius):
-        ped_state = (name, carla_id, self.spawn_location, self.velocity, self.destination, radius, self.target_speed)
-        return ped_state
+        ped_state = (name, carla_id, self.spawn_location, self.velocity, self.first_waypoint, radius, self.target_speed)
+
+        return ped_state, self.remaining_waypoints
 
 
-def generate_carla_spawn_point(spawn_location, destination):
+def generate_carla_spawn_point(spawn_location, first_waypoint):
     carla_spawn_point = carla.Transform()
     carla_spawn_point.location = carla.Location(spawn_location[0], spawn_location[1], spawn_location[2])
 
-    direction = destination - spawn_location
+    direction = first_waypoint - spawn_location
     ref_axis = np.array([1.0, 0.0, 0.0])
     rotation_angle = stateutils.angle_diff_2d(direction, ref_axis)
 

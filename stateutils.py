@@ -6,7 +6,7 @@ import numpy as np
 
 def desired_directions(state) -> np.ndarray:
     """Given the current state and destination, compute desired direction."""
-    destination_vectors = state['dest'] - state['loc']
+    destination_vectors = state['next_waypoint'] - state['loc']
     norm_factors = np.linalg.norm(destination_vectors, axis=1)
     directions = destination_vectors / np.expand_dims(norm_factors, 1)
     directions[norm_factors == 0] = [0, 0, 0]

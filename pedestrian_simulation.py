@@ -1,3 +1,5 @@
+import numpy as np
+
 import forces
 from pedestrian_state import PedState
 
@@ -47,6 +49,17 @@ class PedestrianSimulation:
 
     def close(self):
         pass
+
+    def get_arrived_peds(self, distance_threshold):
+        if self.peds.state is None:
+            return []
+
+        diff = self.peds.next_waypoint()[:, :2] - self.peds.loc()[:, :2]
+        distance = np.linalg.norm(diff, axis=-1)
+
+        arrived_peds = self.peds.name()[distance < distance_threshold]
+
+        return arrived_peds
 
     def spawn_pedestrian(self, ped_info):
         self.peds.add_pedestrian(ped_info)

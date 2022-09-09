@@ -8,22 +8,24 @@ spectator_rotation = [-40.0, -90.0, 0.0]
 
 [walker]
 pedestrian_seed = 2015
+despawn_on_arrival = true
+despawn_threshold = 0.2
 draw_bounding_boxes = false
 ai_controller = true
 
 [[walker.ped_spawner]]
 spawn_location = [244.0, -6.0, 0.0]
-destination = [215.0, -6.0, 0.0]
+waypoints = [215.0, -6.0, 0.0]
 speed = 1.0
-quantity = 20
+quantity = 1
 spawn_time = 0.0
 spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [225.0, -6.0, 0.0]
-destination = [250.0, -6.0, 0.0]
+waypoints = [[250.0, -6.0, 0.0], [240.0, -6.0, 0.0]]
 speed = 1.0
-quantity = 20
+quantity = 1
 spawn_time = 0.0
 spawn_interval = 2.0
 

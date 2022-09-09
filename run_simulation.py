@@ -26,12 +26,19 @@ class SimulationRunner:
         self.carla_sim = carla_simulation
         self.ped_spawn_manager = ped_spawn_manager
         self.scenario_config = scenario_config
-        self.draw_bounding_boxes = scenario_config['walker'].get('draw_bounding_boxes', False)
 
         self.plot = args.plot
         self.animate = args.animate
         self.output_path = args.output
         self.step_length = args.step_length
+
+        walker_config = scenario_config.get('walker', {})
+        self.draw_bounding_boxes = walker_config.get('draw_bounding_boxes', False)
+        self.despawn_on_arrival = walker_config.get('despawn_on_arrival', True)
+        self.despawn_threshold = walker_config.get('despawn_threshold', 0.2)
+
+        self.walker_dict = ped_spawn_manager.walker_dict
+        self.waypoint_dict = ped_spawn_manager.waypoint_dict
 
     def tick(self):
         """
@@ -40,10 +47,28 @@ class SimulationRunner:
         sim_time = self.carla_sim.get_sim_time()
         self.ped_spawn_manager.tick(sim_time)
 
+        arrived_peds = self.ped_sim.get_arrived_peds(self.despawn_threshold)
+
+        for ped_name in arrived_peds:
+
+            remaining_waypoints = self.waypoint_dict[ped_name]
+
+            if remaining_waypoints:
+                next_waypoint = remaining_waypoints.pop(0)
+                self.ped_sim.peds.update_next_waypoint(ped_name, next_waypoint)
+                self.waypoint_dict[ped_name] = remaining_waypoints
+
+            elif not remaining_waypoints and self.despawn_on_arrival:
+                self.ped_sim.destroy_pedestrian(ped_name)
+                self.carla_sim.destroy_actor(self.walker_dict[ped_name])
+                self.walker_dict.pop(ped_name)
+                self.waypoint_dict.pop(ped_name)
+                logging.info(f'Despawned pedestrian {ped_name}.')
+
         # Tick CARLA simulation and receive new location and velocity of every pedestrian and propagate
         # it to the pedestrian simulation
         self.carla_sim.tick()
-        for actor_id in self.ped_spawn_manager.walker_dict.values():
+        for actor_id in self.walker_dict.values():
             walker = self.carla_sim.get_actor(actor_id)
             carla_location = walker.get_location()
             carla_velocity = walker.get_velocity()
@@ -76,7 +101,7 @@ class SimulationRunner:
         Cleans synchronization.
         """
         # Destroying synchronized actors.
-        for carla_actor_id in self.ped_spawn_manager.walker_dict.values():
+        for carla_actor_id in self.walker_dict.values():
             self.carla_sim.destroy_actor(carla_actor_id)
 
         if self.plot:
@@ -119,13 +144,10 @@ def simulation_loop(args):
     # initialize pedestrian simulation
     pedestrian_simulation = PedestrianSimulation(obstacle_borders, sfm_config, args.step_length)
 
-    # spawn initial pedestrians
-    # spawn_points, ped_state_data = extract_ped_info(scenario_config)
-    # walker_dict = spawn_pedestrians(spawn_points, carla_simulation, scenario_config, ped_state_data,
-    #                                 pedestrian_simulation)
-
+    # initialize pedestrian spawn manager
     ped_spawn_manager = PedSpawnManager(scenario_config, carla_simulation, pedestrian_simulation)
 
+    # initialize simulation runner
     sim_runner = SimulationRunner(pedestrian_simulation, carla_simulation, ped_spawn_manager, scenario_config, args)
 
     # main simulation loop
