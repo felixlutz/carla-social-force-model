@@ -12,6 +12,9 @@ space_repulsive_force = false
 two_phi = 200
 out_of_view_factor = 0.5
 
+[goal_force]
+tau = 0.5
+
 [ped_ped_potential]
 v0 = 2.1
 sigma = 0.5

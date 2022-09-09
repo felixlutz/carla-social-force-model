@@ -6,21 +6,29 @@ import stateutils
 class PedState:
     """Tracks the state of pedestrians"""
 
-    def __init__(self, initial_state, step_length, sfm_config):
-        self.sfm_config = sfm_config
+    def __init__(self, step_length, sfm_config):
         self.step_length = step_length
-        self.agent_radius = self.sfm_config.get('agent_radius', 0.35)
-        self.max_speed_multiplier = sfm_config.get('max_speed_multiplier', 1.3)
+        self.max_speed_factor = sfm_config.get('max_speed_factor', 1.3)
 
-        self.initial_speeds = stateutils.speeds(initial_state)
-        self.max_speeds = self.max_speed_multiplier * self.initial_speeds
+        self.ped_state_dtype = [('name', 'U8'), ('id', 'i4'), ('loc', 'f8', (3,)), ('vel', 'f8', (3,)),
+                                ('dest', 'f8', (3,)), ('radius', 'f8'), ('target_speed', 'f8')]
 
-        self.state = initial_state
-        self.new_velocities = initial_state[['id', 'vel']]
+        self.state = None
+        self.new_velocities = None
 
         # list of all states to record simulation
-        self.all_states = [self.state.copy()]
+        self.all_states = []
 
+    def add_pedestrian(self, ped_info):
+        new_ped = [np.array(ped_info, dtype=self.ped_state_dtype)]
+
+        if self.state is None:
+            self.state = new_ped
+        else:
+            self.state = np.append(self.state, new_ped, axis=0)
+
+    def remove_pedestrian(self, ped_name):
+        self.state = np.delete(self.state, np.where(self.state['name'] == ped_name), axis=0)
 
     def size(self) -> int:
         return self.state.shape[0]
@@ -43,8 +51,11 @@ class PedState:
     def radius(self) -> np.ndarray:
         return self.state['radius']
 
-    def tau(self) -> np.ndarray:
-        return self.state['tau']
+    def target_speed(self) -> np.ndarray:
+        return self.state['target_speed']
+
+    def max_speed(self) -> np.ndarray:
+        return self.target_speed() * self.max_speed_factor
 
     def speeds(self) -> np.ndarray:
         """Return the speeds corresponding to a given state."""
@@ -54,8 +65,9 @@ class PedState:
         """Calculate new desired velocities according to forces"""
         # desired velocity
         desired_velocity = self.vel() + self.step_length * force
-        desired_velocity = self.capped_velocity(desired_velocity, self.max_speeds)
+        desired_velocity = self.capped_velocity(desired_velocity, self.max_speed())
 
+        self.new_velocities = self.state[['id', 'vel']]
         self.new_velocities['vel'] = desired_velocity
 
     def get_new_velocities(self) -> np.ndarray:
