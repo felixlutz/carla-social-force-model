@@ -44,13 +44,14 @@ class SimulationRunner:
         """
         Tick to simulation synchronization. One tick = one simulation step.
         """
+        # spawn pedestrians that are supposed to spawn in this time step
         sim_time = self.carla_sim.get_sim_time()
         self.ped_spawn_manager.tick(sim_time)
 
+        # get all pedestrians that arrived at their next waypoint and either assign a new waypoint or despawn
+        # them if they reached their final destination
         arrived_peds = self.ped_sim.get_arrived_peds(self.despawn_threshold)
-
         for ped_name in arrived_peds:
-
             remaining_waypoints = self.waypoint_dict[ped_name]
 
             if remaining_waypoints:

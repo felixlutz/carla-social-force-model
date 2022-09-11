@@ -61,8 +61,8 @@ class PedestrianSimulation:
 
         return arrived_peds
 
-    def spawn_pedestrian(self, ped_info):
-        self.peds.add_pedestrian(ped_info)
+    def spawn_pedestrian(self, initial_ped_state):
+        self.peds.add_pedestrian(initial_ped_state)
 
     def destroy_pedestrian(self, ped_name):
         self.peds.remove_pedestrian(ped_name)

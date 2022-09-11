@@ -133,6 +133,5 @@ class CarlaSimulation:
             self.world.debug.draw_point(point, size=0.05, life_time=0)
 
     def close(self):
-
         # reset CARLA simulation settings
         self.world.apply_settings(self.original_settings)

@@ -4,7 +4,11 @@ import stateutils
 
 
 class PedState:
-    """Tracks the state of pedestrians"""
+    """
+    Tracks the state of pedestrians using a structured numpy array that contains information on
+    name, carla id, location vector, current velocity vector, next waypoint, radius and target speed
+    of every pedestrian modeled by the pedestrian simulation.
+    """
 
     def __init__(self, step_length, sfm_config):
         self.step_length = step_length
@@ -19,8 +23,12 @@ class PedState:
         # list of all states to record simulation
         self.all_states = []
 
-    def add_pedestrian(self, ped_info):
-        new_ped = np.expand_dims(np.array(ped_info, dtype=self.ped_state_dtype), axis=0)
+    def add_pedestrian(self, initial_ped_state):
+        """
+        Adds a new pedestrian to the pedestrian state array.
+        :param initial_ped_state:
+        """
+        new_ped = np.expand_dims(np.array(initial_ped_state, dtype=self.ped_state_dtype), axis=0)
 
         if self.state is None:
             self.state = new_ped
@@ -28,6 +36,10 @@ class PedState:
             self.state = np.append(self.state, new_ped, axis=0)
 
     def remove_pedestrian(self, ped_name):
+        """
+        Remove a pedestrian from the pedestrian state array.
+        :param ped_name:
+        """
         self.state = np.delete(self.state, np.where(self.state['name'] == ped_name), axis=0)
 
     def size(self) -> int:
@@ -86,7 +98,7 @@ class PedState:
     def record_current_state(self):
         self.all_states.append(self.state.copy())
 
-    def get_all_states(self):
+    def get_all_states(self) -> np.ndarray:
         return np.stack(self.all_states)
 
     @staticmethod
