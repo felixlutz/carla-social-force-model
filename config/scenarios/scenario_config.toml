@@ -1,93 +1,101 @@
 [map]
 map_name = 'Town01_Opt'
 map_path = 'Carla/Maps/'
+draw_obstacles = false
 sumo_coordinates = true
 sumo_offset = [0.06, 328.61, 0.0]
 
 [walker]
+pedestrian_seed = 2020
+despawn_on_arrival = true
+despawn_threshold = 0.2
+draw_bounding_boxes = false
+ai_controller = true
 spectator_focus = 'ped_4'
 
-[[walker.pedestrians]]
-role_name = 'ped_0'
-spawn_location = [109.0, 269.0, 0.0]
-spawn_rotation = [0.0, 0.0, 0.0]
-#destination = [129.0, 269.0, 0.0]
-destination = [129.0, 271.0, 0.0]
-spawn_speed = 0.5
+[[walker.ped_spawner]]
+spawn_location = [109.0, 269.0, 0.3]
+waypoints = [129.0, 269.0, 0.0]
+speed = 0.5
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 2.0
 
-[[walker.pedestrians]]
-role_name = 'ped_1'
-spawn_location = [110.0, 270.0, 0.0]
-spawn_rotation = [0.0, 0.0, 0.0]
-#destination = [129.0, 270.0, 0.0]
-destination = [129.0, 271.0, 0.0]
-spawn_speed = 1.0
+[[walker.ped_spawner]]
+spawn_location = [110.0, 270.0, 0.3]
+waypoints = [129.0, 270.0, 0.0]
+speed = 1.0
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 2.0
 
-[[walker.pedestrians]]
-role_name = 'ped_2'
-spawn_location = [108.0, 271.0, 0.0]
-spawn_rotation = [0.0, 0.0, 0.0]
-destination = [129.0, 271.0, 0.0]
-spawn_speed = 2.0
+[[walker.ped_spawner]]
+spawn_location = [108.0, 271.0, 0.3]
+waypoints = [129.0, 271.0, 0.0]
+speed = 2.0
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 2.0
 
-[[walker.pedestrians]]
-role_name = 'ped_3'
-spawn_location = [107.0, 272.0, 0.0]
-spawn_rotation = [0.0, 0.0, 0.0]
-#destination = [129.0, 272.0, 0.0]
-destination = [129.0, 271.0, 0.0]
-spawn_speed = 1.0
+[[walker.ped_spawner]]
+spawn_location = [107.0, 272.0, 0.3]
+waypoints = [129.0, 272.0, 0.0]
+speed = 1.0
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 2.0
 
-[[walker.pedestrians]]
-role_name = 'ped_4'
-spawn_location = [108.0, 273.0, 0.0]
-spawn_rotation = [0.0, 0.0, 0.0]
-#destination = [129.0, 273.0, 0.0]
-destination = [129.0, 271.0, 0.0]
-spawn_speed = 1.5
+[[walker.ped_spawner]]
+spawn_location = [108.0, 273.0, 0.3]
+waypoints = [129.0, 273.0, 0.0]
+speed = 1.5
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 2.0
 
-[[walker.pedestrians]]
-role_name = 'ped_5'
-spawn_location = [118.0, 269.0, 0.0]
-spawn_rotation = [0.0, 180.0, 0.0]
-#destination = [100.0, 269.0, 0.0]
-destination = [100.0, 271.0, 0.0]
-spawn_speed = 1.0
+[[walker.ped_spawner]]
+spawn_location = [118.0, 269.0, 0.3]
+waypoints = [100.0, 269.0, 0.0]
+speed = 1.0
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 2.0
 
-[[walker.pedestrians]]
-role_name = 'ped_6'
-spawn_location = [120.0, 270.0, 0.0]
-spawn_rotation = [0.0, 180.0, 0.0]
-#destination = [100.0, 270.0, 0.0]
-destination = [100.0, 271.0, 0.0]
-spawn_speed = 1.0
+[[walker.ped_spawner]]
+spawn_location = [120.0, 270.0, 0.3]
+waypoints = [100.0, 270.0, 0.0]
+speed = 1.0
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 2.0
 
-[[walker.pedestrians]]
-role_name = 'ped_7'
-spawn_location = [119.0, 271.0, 0.0]
-spawn_rotation = [0.0, 180.0, 0.0]
-destination = [100.0, 271.0, 0.0]
-spawn_speed = 1.0
+[[walker.ped_spawner]]
+spawn_location = [119.0, 271.0, 0.3]
+waypoints = [100.0, 271.0, 0.0]
+speed = 1.0
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 2.0
 
-[[walker.pedestrians]]
-role_name = 'ped_8'
-spawn_location = [120.0, 272.0, 0.0]
-spawn_rotation = [0.0, 180.0, 0.0]
-#destination = [100.0, 272.0, 0.0]
-destination = [100.0, 271.0, 0.0]
-spawn_speed = 1.5
+[[walker.ped_spawner]]
+spawn_location = [120.0, 272.0, 0.3]
+waypoints = [100.0, 272.0, 0.0]
+speed = 1.5
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 2.0
 
-[[walker.pedestrians]]
-role_name = 'ped_9'
-spawn_location = [121.0, 273.0, 0.0]
-spawn_rotation = [0.0, 180.0, 0.0]
-#destination = [100.0, 273.0, 0.0]
-destination = [100.0, 271.0, 0.0]
-spawn_speed = 1.0
+[[walker.ped_spawner]]
+spawn_location = [121.0, 273.0, 0.3]
+waypoints = [100.0, 273.0, 0.0]
+speed = 1.0
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 2.0
 
-#[obstacles]
-#resolution = 10
-#
+[obstacles]
+resolution = 0.1
+
 #[[obstacles.borders]]
 #start_point = [119.0, 260.0]
 #end_point = [116.0, 270.0]

@@ -63,12 +63,15 @@ class PedSpawnManager:
                 waypoints = np.array(spawn_point['waypoints'])
                 quantity = spawn_point.get('quantity', 1)
                 spawn_time = spawn_point.get('spawn_time', 0.0)
-                spawn_interval = spawn_point.get('spawn_interval')
+                spawn_interval = spawn_point.get('spawn_interval', 1.0)
 
                 # convert coordinates if they are from SUMO simulator
                 if sumo_coordinates and sumo_offset is not None:
                     spawn_location = stateutils.convert_coordinates(spawn_location, sumo_offset)
-                    np.apply_along_axis(stateutils.convert_coordinates, 1, waypoints)
+                    if waypoints.ndim > 1:
+                        np.apply_along_axis(stateutils.convert_coordinates, 1, waypoints)
+                    else:
+                        waypoints = stateutils.convert_coordinates(waypoints, sumo_offset)
 
                 ped_spawner = PedSpawner(spawn_location, waypoints, speed, quantity, spawn_time, spawn_interval)
                 ped_spawners.append(ped_spawner)
