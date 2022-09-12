@@ -6,7 +6,7 @@ import numpy as np
 
 def desired_directions(state) -> np.ndarray:
     """Given the current state and destination, compute desired direction."""
-    destination_vectors = state['dest'] - state['loc']
+    destination_vectors = state['next_waypoint'] - state['loc']
     norm_factors = np.linalg.norm(destination_vectors, axis=1)
     directions = destination_vectors / np.expand_dims(norm_factors, 1)
     directions[norm_factors == 0] = [0, 0, 0]
@@ -89,16 +89,31 @@ def angle_diff_2d(vecs1, vecs2) -> np.ndarray:
     :param vecs2:
     :return:
     """
-    # get vector angles with arctan2(y, x)
-    angles1 = np.arctan2(vecs1[..., 1], vecs1[..., 0])
-    angles2 = np.arctan2(vecs2[..., 1], vecs2[..., 0])
+    if vecs1.ndim > 1:
+        # get vector angles with arctan2(y, x)
+        angles1 = np.arctan2(vecs1[..., 1], vecs1[..., 0])
+        angles2 = np.arctan2(vecs2[..., 1], vecs2[..., 0])
 
-    # compute angle diffs
-    angle_diffs = angles1 - angles2
+        # compute angle diffs
+        angle_diffs = angles1 - angles2
 
-    # normalize angles
-    angle_diffs[angle_diffs > np.pi] -= 2 * np.pi
-    angle_diffs[angle_diffs < -np.pi] += 2 * np.pi
+        # normalize angles
+        angle_diffs[angle_diffs > np.pi] -= 2 * np.pi
+        angle_diffs[angle_diffs < -np.pi] += 2 * np.pi
+
+    else:
+        # get vector angles with arctan2(y, x)
+        angle1 = np.arctan2(vecs1[1], vecs1[0])
+        angle2 = np.arctan2(vecs2[1], vecs2[0])
+
+        # compute angle diffs
+        angle_diffs = angle1 - angle2
+
+        # normalize angles
+        if angle_diffs > np.pi:
+            angle_diffs -= 2 * np.pi
+        elif angle_diffs < - np.pi:
+            angle_diffs -= 2 * np.pi
 
     return angle_diffs
 
@@ -109,3 +124,21 @@ def minmax(vecs: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.nda
     x_max = np.max(vecs['loc'][:, 0])
     y_max = np.max(vecs['loc'][:, 1])
     return x_min, y_min, x_max, y_max
+
+
+def convert_coordinates(coordinates, sumo_offset):
+    """
+    Converts SUMO coordinates to Carla coordinated by applying a map offset and inverting the y-axis.
+    :param coordinates:
+    :param sumo_offset:
+    :return:
+    """
+
+    if len(coordinates) == 2:
+        new_coordinates = coordinates - sumo_offset[0:2]
+    else:
+        new_coordinates = coordinates - sumo_offset
+
+    new_coordinates[1] *= -1
+
+    return new_coordinates

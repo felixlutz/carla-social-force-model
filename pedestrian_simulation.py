@@ -1,21 +1,16 @@
 import numpy as np
 
 import forces
-from pedestrian import PedState
+from pedestrian_state import PedState
 
 
 class PedestrianSimulation:
-    def __init__(self, initial_ped_state, obstacles, sfm_config, walker_dict, step_length):
+    def __init__(self, obstacles, sfm_config, step_length):
         self.sfm_config = sfm_config
-        self.walker_dict = walker_dict
 
         self.obstacles = obstacles
 
-        # update pedestrian states with correct CARLA actor ids
-        self.initial_ped_state = clean_up_ped_state(initial_ped_state)
-        print(*self.initial_ped_state, sep="\n")
-
-        self.peds = PedState(self.initial_ped_state, step_length, sfm_config)
+        self.peds = PedState(step_length, sfm_config)
 
         self.delta_t = step_length
         self.forces = self.init_forces()
@@ -41,12 +36,12 @@ class PedestrianSimulation:
     def tick(self):
         """Do one step in the simulation"""
 
+        # skip social force calculations if pedestrian state matrix is empty or None
+        if self.peds.state is None or self.peds.size() == 0:
+            return
+
         # record current state for plotting
         self.peds.record_current_state()
-
-        # skip social force calculations if pedestrian state matrix is empty
-        if self.peds.size() == 0:
-            return
 
         F = sum(map(lambda x: x.get_force(self.peds), self.forces))
 
@@ -54,6 +49,23 @@ class PedestrianSimulation:
 
     def close(self):
         pass
+
+    def get_arrived_peds(self, distance_threshold):
+        if self.peds.state is None:
+            return []
+
+        diff = self.peds.next_waypoint()[:, :2] - self.peds.loc()[:, :2]
+        distance = np.linalg.norm(diff, axis=-1)
+
+        arrived_peds = self.peds.name()[distance < distance_threshold]
+
+        return arrived_peds
+
+    def spawn_pedestrian(self, initial_ped_state):
+        self.peds.add_pedestrian(initial_ped_state)
+
+    def destroy_pedestrian(self, ped_name):
+        self.peds.remove_pedestrian(ped_name)
 
     def update_ped_info(self, walker_id, location, velocity):
         self.peds.update_state(walker_id, location, velocity)
@@ -66,10 +78,3 @@ class PedestrianSimulation:
 
     def get_states(self):
         return self.peds.get_all_states()
-
-
-def clean_up_ped_state(ped_state):
-
-    updated_ped_state = np.delete(ped_state, np.where(ped_state['id'] == -1)[0], axis=0)
-
-    return updated_ped_state

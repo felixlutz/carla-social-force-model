@@ -18,11 +18,14 @@ class CarlaSimulation:
         self.client = carla.Client(args.carla_host, args.carla_port)
         self.client.set_timeout(10.0)
         self.world = self.client.get_world()
+        self.start_time = self.world.get_snapshot().timestamp.elapsed_seconds
 
         # load configured map
         self.carla_map = self.world.get_map()
         if self.carla_map.name != self.map_path + self.map_name:
             self.world = self.client.load_world(self.map_name)
+            # update map variable after loading new map
+            self.carla_map = self.world.get_map()
 
         # unload props
         if self.unload_props:
@@ -110,6 +113,11 @@ class CarlaSimulation:
         radius = max([extent.x, extent.y])
         return radius
 
+    def get_sim_time(self):
+        timestamp = self.world.get_snapshot().timestamp.elapsed_seconds
+        sim_time = timestamp - self.start_time
+        return sim_time
+
     def draw_lines(self, lines):
         for line in lines:
             self.world.debug.draw_line(line[0], line[1], color=carla.Color(0, 0, 0, 0), thickness=0.05, life_time=0)
@@ -125,6 +133,5 @@ class CarlaSimulation:
             self.world.debug.draw_point(point, size=0.05, life_time=0)
 
     def close(self):
-
         # reset CARLA simulation settings
         self.world.apply_settings(self.original_settings)

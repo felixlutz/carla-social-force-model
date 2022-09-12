@@ -32,16 +32,22 @@ class Force(ABC):
 
 
 class GoalAttractiveForce(Force):
-    """accelerate to desired velocity"""
+    """Goal attractive force based on the original paper "Social force model for pedestrian dynamics"
+    from Helbing and Molnár (1995)"""
+
+    def __init__(self, step_length, sfm_config):
+        super().__init__(step_length, sfm_config)
+
+        self.tau = self.sfm_config.get('goal_force', {}).get('tau', 0.5)
 
     def _get_force(self, peds):
-        tau = np.expand_dims(peds.tau(), -1)
-        initial_speeds = np.expand_dims(peds.initial_speeds, -1)
-        desired_directions = peds.desired_directions()
+        tau = np.full([peds.size(), 1], self.tau)
+        target_speed = np.expand_dims(peds.target_speed(), -1)
+        desired_direction = peds.desired_directions()
         velocity = peds.vel()
-        F0 = 1.0 / tau * (initial_speeds * desired_directions - velocity)
+        F_0 = 1.0 / tau * (target_speed * desired_direction - velocity)
 
-        return F0
+        return F_0
 
 
 class PedRepulsiveForce(Force):
