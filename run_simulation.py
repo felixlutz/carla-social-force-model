@@ -105,6 +105,10 @@ class SimulationRunner:
         for carla_actor_id in self.walker_dict.values():
             self.carla_sim.destroy_actor(carla_actor_id)
 
+        # Closing pedestrian simulation and CARLA client.
+        self.carla_sim.close()
+        self.ped_sim.close()
+
         if self.plot:
             with visualization.SceneVisualizer(self.ped_sim, self.output_path, self.step_length) as sv:
                 sv.plot()
@@ -112,9 +116,6 @@ class SimulationRunner:
             with visualization.SceneVisualizer(self.ped_sim, self.output_path, self.step_length) as sv:
                 sv.animate()
 
-        # Closing pedestrian simulation and CARLA client.
-        self.carla_sim.close()
-        self.ped_sim.close()
 
 
 def simulation_loop(args):
