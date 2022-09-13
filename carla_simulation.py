@@ -24,8 +24,9 @@ class CarlaSimulation:
         self.carla_map = self.world.get_map()
         if self.carla_map.name != self.map_path + self.map_name:
             self.world = self.client.load_world(self.map_name)
-            # update map variable after loading new map
+            # update map variable and start time after loading new map
             self.carla_map = self.world.get_map()
+            self.start_time = self.world.get_snapshot().timestamp.elapsed_seconds
 
         # unload props
         if self.unload_props:
