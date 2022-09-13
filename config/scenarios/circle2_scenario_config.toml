@@ -8,8 +8,9 @@ spectator_rotation = [-90.0, 0.0, 0.0]
 
 [walker]
 pedestrian_seed = 2020
-despawn_on_arrival = true
+despawn_on_arrival = false
 despawn_threshold = 0.2
+variate_speed = 0.1
 draw_bounding_boxes = false
 ai_controller = true
 

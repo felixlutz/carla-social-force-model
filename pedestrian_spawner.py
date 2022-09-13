@@ -17,8 +17,9 @@ class PedSpawnManager:
         self.carla_sim = carla_sim
         self.ped_sim = ped_sim
 
-        self.spectator_focus = scenario_config.get('walker').get('spectator_focus')
-        self.ped_seed = scenario_config.get('walker').get('pedestrian_seed', 2000)
+        self.spectator_focus = scenario_config.get('walker', {}).get('spectator_focus')
+        self.ped_seed = scenario_config.get('walker', {}).get('pedestrian_seed', 2000)
+        self.variate_speed = scenario_config.get('walker', {}).get('variate_speed', 0.0)
 
         # set pedestrian seed
         self.carla_sim.world.set_pedestrians_seed(self.ped_seed)
@@ -73,7 +74,10 @@ class PedSpawnManager:
                     else:
                         waypoints = stateutils.convert_coordinates(waypoints, sumo_offset)
 
-                ped_spawner = PedSpawner(spawn_location, waypoints, speed, quantity, spawn_time, spawn_interval)
+                ped_spawner = PedSpawner(spawn_location, waypoints, speed, quantity, spawn_time, spawn_interval,
+                                         self.variate_speed, self.ped_seed, self.carla_sim.walker_blueprints)
+                # increment ped seed so next walker has a different random blueprint and speed variation
+                self.ped_seed += 1
                 ped_spawners.append(ped_spawner)
 
         return ped_spawners
@@ -83,12 +87,7 @@ class PedSpawnManager:
         Spawn pedestrian in both Carla and pedestrian simulation.
         """
         spawn_point = ped_spawner.carla_spawn_point
-
-        random.seed(self.ped_seed)
-        walker_bp = random.choice(self.carla_sim.walker_blueprints)
-
-        # increment ped seed so next walker has a different random blueprint (model)
-        self.ped_seed += 1
+        walker_bp = ped_spawner.walker_bp
 
         ped_name = self.generate_ped_name()
 
@@ -108,7 +107,9 @@ class PedSpawnManager:
             self.ped_sim.spawn_pedestrian(initial_ped_state)
 
             self.walker_dict[ped_name] = actor_id
-            self.waypoint_dict[ped_name] = remaining_waypoints
+            # it's important to make a shallow copy of the remaining waypoints with [:], because otherwise waypoints
+            # get removed for all peds of one spawner when the first pedestrian reaches the waypoint
+            self.waypoint_dict[ped_name] = remaining_waypoints[:]
 
             # place spectator camera behind selected pedestrian
             if self.spectator_focus == ped_name:
@@ -135,8 +136,12 @@ class PedSpawner:
     Class containing all the information necessary to spawn one or multiple pedestrians from one spawn point.
     """
 
-    def __init__(self, spawn_location, waypoints, speed, quantity, spawn_time, spawn_interval):
+    def __init__(self, spawn_location, waypoints, speed, quantity, spawn_time, spawn_interval, variate_speed,
+                 ped_seed, walker_blueprints):
         self.spawn_location = spawn_location
+        self.quantity = quantity
+        self.spawn_interval = spawn_interval
+        self.next_spawn_time = spawn_time
 
         if waypoints.ndim > 1:
             self.first_waypoint = waypoints[0]
@@ -144,15 +149,17 @@ class PedSpawner:
         else:
             self.first_waypoint = waypoints
             self.remaining_waypoints = []
+
         self.target_speed = speed
-        self.quantity = quantity
-        self.spawn_interval = spawn_interval
+        random.seed(ped_seed)
+        if variate_speed != 0.0:
+            self.target_speed += random.uniform(-variate_speed, variate_speed)
+
+        self.walker_bp = random.choice(walker_blueprints)
 
         self.carla_spawn_point = self.generate_carla_spawn_point()
         direction = self.carla_spawn_point.get_forward_vector()
         self.velocity = np.array([direction.x, direction.y, direction.z]) * speed
-
-        self.next_spawn_time = spawn_time
 
     def ready_to_spawn(self, sim_time):
         """

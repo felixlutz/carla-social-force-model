@@ -1,0 +1,65 @@
+[map]
+map_name = 'Town01_Opt'
+map_path = 'Carla/Maps/'
+draw_obstacles = false
+sumo_coordinates = false
+spectator_location = [10.0, 10.0, 10]
+spectator_rotation = [-40.0, -135.0, 0.0]
+
+[walker]
+pedestrian_seed = 2020
+despawn_on_arrival = true
+despawn_threshold = 3
+draw_bounding_boxes = false
+ai_controller = true
+
+[[walker.ped_spawner]]
+spawn_location = [10.0, -6.0, 0.0]
+waypoints = [[-2.0, -2.0, 0.0], [-6.0, 10.0, 0.0]]
+speed = 1.0
+quantity = 2
+spawn_time = 0.0
+spawn_interval = 5.0
+
+[[walker.ped_spawner]]
+spawn_location = [11.0, -7.0, 0.0]
+waypoints = [[-2.0, -2.0, 0.0], [-6.0, 10.0, 0.0]]
+speed = 1.0
+quantity = 2
+spawn_time = 0.0
+spawn_interval = 5.0
+
+[[walker.ped_spawner]]
+spawn_location = [10.5, -5.0, 0.0]
+waypoints = [[-2.0, -2.0, 0.0], [-6.0, 10.0, 0.0]]
+speed = 1.0
+quantity = 2
+spawn_time = 0.0
+spawn_interval = 5.0
+
+[[walker.ped_spawner]]
+spawn_location = [-6.0, 10.0, 0.0]
+waypoints = [[-2.0, -2.0, 0.0], [10.0, -6.0, 0.0]]
+speed = 1.0
+quantity = 2
+spawn_time = 0.0
+spawn_interval = 5.0
+
+[[walker.ped_spawner]]
+spawn_location = [-5.0, 11.0, 0.0]
+waypoints = [[-2.0, -2.0, 0.0], [10.0, -6.0, 0.0]]
+speed = 1.0
+quantity = 2
+spawn_time = 0.0
+spawn_interval = 5.0
+
+[[walker.ped_spawner]]
+spawn_location = [-5.0, 12.0, 0.0]
+waypoints = [[-2.0, -2.0, 0.0], [10.0, -6.0, 0.0]]
+speed = 1.0
+quantity = 2
+spawn_time = 0.0
+spawn_interval = 5.0
+
+[obstacles]
+resolution = 0.1

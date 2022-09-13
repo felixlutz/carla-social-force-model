@@ -217,7 +217,7 @@ def extract_obstacle_info(scenario_config):
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument('--scenario-config',
-                           default='config/scenarios/sidewalk_flow_scenario_config.toml',
+                           default='config/scenarios/sidewalk_curve_scenario_config.toml',
                            type=str,
                            help='scenario configuration file')
     argparser.add_argument('--sfm-config',
