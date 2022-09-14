@@ -74,10 +74,7 @@ class PedSpawnManager:
                     else:
                         waypoints = stateutils.convert_coordinates(waypoints, sumo_offset)
 
-                ped_spawner = PedSpawner(spawn_location, waypoints, speed, quantity, spawn_time, spawn_interval,
-                                         self.variate_speed, self.ped_seed, self.carla_sim.walker_blueprints)
-                # increment ped seed so next walker has a different random blueprint and speed variation
-                self.ped_seed += 1
+                ped_spawner = PedSpawner(spawn_location, waypoints, speed, quantity, spawn_time, spawn_interval)
                 ped_spawners.append(ped_spawner)
 
         return ped_spawners
@@ -87,15 +84,22 @@ class PedSpawnManager:
         Spawn pedestrian in both Carla and pedestrian simulation.
         """
         spawn_point = ped_spawner.carla_spawn_point
-        walker_bp = ped_spawner.walker_bp
-
         ped_name = self.generate_ped_name()
+
+        random.seed(self.ped_seed)
+        walker_bp = random.choice(self.carla_sim.walker_blueprints)
 
         if walker_bp.has_attribute('role_name'):
             walker_bp.set_attribute('role_name', ped_name)
 
         # spawn pedestrian in Carla
         actor_id = self.carla_sim.spawn_actor(walker_bp, spawn_point)
+
+        if self.variate_speed != 0.0:
+            ped_spawner.target_speed += random.uniform(-self.variate_speed, self.variate_speed)
+
+        # increment ped seed so next walker has a different random blueprint and speed variation
+        self.ped_seed += 1
 
         if actor_id == -1:
             logging.info(f'Failed to spawn pedestrian {ped_name}.')
@@ -136,9 +140,9 @@ class PedSpawner:
     Class containing all the information necessary to spawn one or multiple pedestrians from one spawn point.
     """
 
-    def __init__(self, spawn_location, waypoints, speed, quantity, spawn_time, spawn_interval, variate_speed,
-                 ped_seed, walker_blueprints):
+    def __init__(self, spawn_location, waypoints, speed, quantity, spawn_time, spawn_interval):
         self.spawn_location = spawn_location
+        self.target_speed = speed
         self.quantity = quantity
         self.spawn_interval = spawn_interval
         self.next_spawn_time = spawn_time
@@ -149,13 +153,6 @@ class PedSpawner:
         else:
             self.first_waypoint = waypoints
             self.remaining_waypoints = []
-
-        self.target_speed = speed
-        random.seed(ped_seed)
-        if variate_speed != 0.0:
-            self.target_speed += random.uniform(-variate_speed, variate_speed)
-
-        self.walker_bp = random.choice(walker_blueprints)
 
         self.carla_spawn_point = self.generate_carla_spawn_point()
         direction = self.carla_spawn_point.get_forward_vector()
