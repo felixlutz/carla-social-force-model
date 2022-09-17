@@ -1,3 +1,4 @@
+import itertools
 from enum import Enum
 
 import carla
@@ -13,9 +14,14 @@ class EdgeType(Enum):
 
 
 class PedPathPlanner:
+    """
+    This class generates a navigation graph for pedestrians based on the Carla map (with its underlying OpenDrive map).
+    This graph can be used to determine the shortest path for a pedestrian fom A to B on the map.
+    """
 
-    def __init__(self, carla_map, waypoint_distance):
+    def __init__(self, carla_map, waypoint_distance=20, jaywalking_weight_factor=2):
         self.waypoint_distance = waypoint_distance
+        self.jaywalking_weight_factor = jaywalking_weight_factor
         self.carla_map = carla_map
         self.topology = None
         self.graph = None
@@ -25,6 +31,7 @@ class PedPathPlanner:
         # Build the graph
         self.build_topology()
         self.build_graph()
+        self.create_jaywalking_edges()
 
     def get_all_junctions(self, carla_topology):
         # get all junctions and filter out duplicates
@@ -44,6 +51,7 @@ class PedPathPlanner:
         # get all waypoints of type sidewalk that are located in a junction
         junction_corner_sub_segments = []
         for junction in junctions:
+            corners = []
             waypoint_tuples = junction.get_waypoints(carla.LaneType.Sidewalk)
 
             for segment in waypoint_tuples:
@@ -76,12 +84,43 @@ class PedPathPlanner:
 
                     sub_segments = self.generate_sub_segment_dicts(junction_corner_waypoints)
                     junction_corner_sub_segments.extend(sub_segments)
+                    corners.append(middle_w)
+
+                else:
+                    w_end = segment[1]
+                    w1 = w.next(w.lane_width)[0]
+                    w2 = w_end.previous(w.lane_width)[0]
+
+                    junction_straight_waypoints = [w, w1, w2, w_end]
+                    sub_segments = self.generate_sub_segment_dicts(junction_straight_waypoints)
+                    junction_corner_sub_segments.extend(sub_segments)
+                    corners.extend([w1, w2])
+
+            corner_connections = self.generate_corner_connections(corners)
+            junction_corner_sub_segments.extend(corner_connections)
 
         return junction_corner_sub_segments
 
+    def generate_corner_connections(self, corners):
+        corner_connections = []
+        distances = []
+        combinations = itertools.combinations(corners, 2)
+
+        for c in combinations:
+            connection = self.generate_sub_segment_dicts(c)
+            distance = c[0].transform.location.distance(c[1].transform.location)
+            distances.append(distance)
+            corner_connections.extend(connection)
+
+        indices = np.argpartition(distances, 4)[:4]
+        filtered_corner_connections = [corner_connections[i] for i in indices]
+
+        return filtered_corner_connections
+
     def get_all_crosswalks(self):
         crosswalk_corners = self.carla_map.get_crosswalks()
-        # every crosswalk is represented by 5 points (4 corners + repetition of first corner) -> delete every 5th element
+        # every crosswalk is represented by 5 points (4 corners + repetition of first corner)
+        # -> delete every 5th element
         del crosswalk_corners[4::5]
         crosswalks_np = np.array([np.array([p.x, p.y, p.z]) for p in crosswalk_corners])
         sorted_crosswalks = np.reshape(crosswalks_np, (-1, 2, 2, 3))
@@ -107,7 +146,8 @@ class PedPathPlanner:
         sidewalk_waypoints_left = []
         start = segment[0]
         w_list = [start]
-        w_list.extend(start.next_until_lane_end(self.waypoint_distance))
+        if not start.is_junction:
+            w_list.extend(start.next_until_lane_end(self.waypoint_distance))
         for w in w_list:
             # Check for sidewalk lane type until there are no waypoints by going left
             l = w.get_left_lane()
@@ -147,6 +187,15 @@ class PedPathPlanner:
             all_waypoints.append(segment['exit'])
 
         return all_waypoints
+
+    def get_all_xyz_nodes_from_topology(self, topology):
+        all_nodes = []
+
+        for segment in topology:
+            all_nodes.append(segment['entry_xyz'])
+            all_nodes.append(segment['exit_xyz'])
+
+        return all_nodes
 
     def get_connections_to_crosswalks(self, crosswalk_sub_segments):
         topology_waypoints = self.get_all_waypoints_from_topology(self.topology)
@@ -190,7 +239,7 @@ class PedPathPlanner:
                     sub_segments = self.generate_sub_segment_dicts(side)
                     self.topology.extend(sub_segments)
 
-        junction_sub_segments = self.get_all_junction_corners(carla_topology)
+        junction_sub_segments = self.get_all_junction_sub_segments(carla_topology)
         self.topology.extend(junction_sub_segments)
 
         crosswalk_sub_segments = self.get_all_crosswalks()
@@ -223,12 +272,12 @@ class PedPathPlanner:
             intersection = entry_wp.is_junction
             road_id, section_id, lane_id = entry_wp.road_id, entry_wp.section_id, entry_wp.lane_id
 
-            for vertex in entry_xyz, exit_xyz:
+            for vertex, waypoint in zip([entry_xyz, exit_xyz], [entry_wp, exit_wp]):
                 # Adding unique nodes and populating id_map
                 if vertex not in self.id_map:
                     new_id = len(self.id_map)
                     self.id_map[vertex] = new_id
-                    self.graph.add_node(new_id, vertex=vertex)
+                    self.graph.add_node(new_id, vertex=vertex, waypoint=waypoint)
             n1 = self.id_map[entry_xyz]
             n2 = self.id_map[exit_xyz]
             if road_id not in self.road_id_to_edge:
@@ -253,6 +302,45 @@ class PedPathPlanner:
                 length=length,
                 entry_waypoint=entry_wp, exit_waypoint=exit_wp,
                 intersection=intersection, type=edge_type)
+
+    def create_jaywalking_edges(self):
+        topology_waypoints = self.get_all_waypoints_from_topology(self.topology)
+        topology_xyz = self.get_all_xyz_nodes_from_topology(self.topology)
+
+        for w, xyz in zip(topology_waypoints, topology_xyz):
+            opposite_waypoint = None
+            lane_id_sign = np.sign(w.lane_id)
+            # Check for sidewalk lane type until there are no waypoints by going left
+            l = w.get_left_lane()
+            while l and not opposite_waypoint:
+                if l.lane_type == carla.LaneType.Sidewalk:
+                    opposite_waypoint = l
+                if np.sign(l.lane_id) == lane_id_sign:
+                    l = l.get_left_lane()
+                else:
+                    l = l.get_right_lane()
+
+            # Check for sidewalk lane type until there are no waypoints by going right
+            r = w.get_right_lane()
+            while r and not opposite_waypoint:
+                if r.lane_type == carla.LaneType.Sidewalk:
+                    opposite_waypoint = r
+                if np.sign(r.lane_id) == lane_id_sign:
+                    r = r.get_right_lane()
+                else:
+                    r = r.get_left_lane()
+
+            if opposite_waypoint:
+                current_id = self.id_map[xyz]
+                opposite_id = self.localize(opposite_waypoint.transform.location)
+                exit_w = self.graph.nodes[opposite_id]['waypoint']
+                distance = w.transform.location.distance(exit_w.transform.location)
+
+                self.graph.add_edge(
+                    current_id, opposite_id,
+                    length=distance * self.jaywalking_weight_factor,
+                    entry_waypoint=w, exit_waypoint=exit_w,
+                    intersection=w.is_junction, type=EdgeType.JAYWALK)
 
     def localize(self, location):
         """
@@ -288,6 +376,23 @@ class PedPathPlanner:
         l2 = np.array(self.graph.nodes[n2]['vertex'])
         return np.linalg.norm(l1 - l2)
 
+    def remove_unnecessary_start_end_nodes(self, route, origin_loc, destination_loc):
+        first = self.graph.nodes[route[0]]['waypoint'].transform.location
+        second = self.graph.nodes[route[1]]['waypoint'].transform.location
+        distance_first_second = first.distance(second)
+        distance_origin_second = origin_loc.distance(second)
+
+        last = self.graph.nodes[route[-1]]['waypoint'].transform.location
+        second_to_last = self.graph.nodes[route[-2]]['waypoint'].transform.location
+        distance_last_second_to_last = last.distance(second_to_last)
+        distance_destination_second_to_last = destination_loc.distance(second_to_last)
+
+        if distance_first_second > distance_origin_second:
+            del route[0]
+
+        if distance_last_second_to_last > distance_destination_second_to_last:
+            del route[-1]
+
     def path_search(self, origin, destination):
         """
         This function finds the shortest path connecting origin and destination
@@ -299,7 +404,8 @@ class PedPathPlanner:
         """
         start, end = self.localize(origin), self.localize(destination)
 
-        route = nx.astar_path(
-            self.graph, source=start, target=end,
-            heuristic=self.distance_heuristic, weight='length')
+        route = nx.astar_path(self.graph, source=start, target=end, heuristic=self.distance_heuristic, weight='length')
+
+        self.remove_unnecessary_start_end_nodes(route, origin, destination)
+
         return route
