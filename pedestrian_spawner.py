@@ -5,6 +5,7 @@ import carla
 import numpy as np
 
 import stateutils
+from path_planner import PedPathPlanner, GraphType
 
 
 class PedSpawnManager:
@@ -20,9 +21,13 @@ class PedSpawnManager:
         self.spectator_focus = scenario_config.get('walker', {}).get('spectator_focus')
         self.ped_seed = scenario_config.get('walker', {}).get('pedestrian_seed', 2000)
         self.variate_speed = scenario_config.get('walker', {}).get('variate_speed', 0.0)
+        waypoint_distance = scenario_config.get('walker', {}).get('waypoint_distance', 20)
+        jaywalking_weight = scenario_config.get('walker', {}).get('jaywalking_weight', 2)
 
         # set pedestrian seed
         self.carla_sim.world.set_pedestrians_seed(self.ped_seed)
+
+        self.path_planner = PedPathPlanner(self.carla_sim.carla_map, waypoint_distance, jaywalking_weight)
 
         # get pedestrian spawners from scenario config
         self.ped_spawners = self.extract_ped_info()
@@ -61,7 +66,14 @@ class PedSpawnManager:
 
                 spawn_location = np.array(spawn_point['spawn_location'])
                 speed = spawn_point['speed']
-                waypoints = np.array(spawn_point['waypoints'])
+                generate_route = spawn_point.get('generate_route')
+                if generate_route:
+                    destination = np.array(spawn_point['destination'])
+                    waypoint_tuples = self.path_planner.generate_route(spawn_location, destination,
+                                                                       GraphType[generate_route])
+                    waypoints = np.array([w[0] for w in waypoint_tuples])
+                else:
+                    waypoints = np.array(spawn_point['waypoints'])
                 quantity = spawn_point.get('quantity', 1)
                 spawn_time = spawn_point.get('spawn_time', 0.0)
                 spawn_interval = spawn_point.get('spawn_interval', 1.0)

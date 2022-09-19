@@ -14,6 +14,12 @@ class EdgeType(Enum):
     JAYWALKING_JUNCTION = 4
 
 
+class GraphType(Enum):
+    NO_JAYWALKING = 1
+    JAYWALKING_AT_JUNCTION = 2
+    JAYWALKING = 3
+
+
 class PedPathPlanner:
     """
     This class generates a navigation graph for pedestrians based on the Carla map (with its underlying OpenDrive map).
@@ -35,9 +41,13 @@ class PedPathPlanner:
         self.create_jaywalking_edges()
 
         # Create filtered subgraphs
-        self.graph_jaywalking_junctions_only = self.filter_graph_edges(self.graph, 'type', EdgeType.JAYWALKING)
-        self.graph_no_jaywalking = self.filter_graph_edges(self.graph_jaywalking_junctions_only,
-                                                           'type', EdgeType.JAYWALKING_JUNCTION)
+        graph_jaywalking_junctions_only = self.filter_graph_edges(self.graph, 'type', EdgeType.JAYWALKING)
+        graph_no_jaywalking = self.filter_graph_edges(graph_jaywalking_junctions_only,
+                                                      'type', EdgeType.JAYWALKING_JUNCTION)
+
+        self.graph_dict = {GraphType.NO_JAYWALKING: graph_no_jaywalking,
+                           GraphType.JAYWALKING_AT_JUNCTION: graph_jaywalking_junctions_only,
+                           GraphType.JAYWALKING: self.graph}
 
     def filter_graph_edges(self, graph, edge_attribute, filter_val):
 
@@ -127,17 +137,34 @@ class PedPathPlanner:
             distances.append(distance)
             corner_connections.extend(connection)
 
-        indices = np.argpartition(distances, 4)[:4]
-        filtered_corner_connections = [corner_connections[i] for i in indices]
+        if len(distances) > 4:
+            indices = np.argpartition(distances, 4)[:4]
+            filtered_corner_connections = [corner_connections[i] for i in indices]
 
-        return filtered_corner_connections
+            return filtered_corner_connections
+        else:
+            return corner_connections
 
     def get_all_crosswalks(self):
         crosswalk_corners = self.carla_map.get_crosswalks()
+        filtered_crosswalk_corners = []
+        crosswalk = []
+        for point in crosswalk_corners:
+            if point not in crosswalk:
+                crosswalk.append(point)
+            else:
+                if len(crosswalk) == 4:
+                    filtered_crosswalk_corners.extend(crosswalk)
+                elif len(crosswalk) == 6:
+                    del crosswalk[4]
+                    del crosswalk[1]
+                    filtered_crosswalk_corners.extend(crosswalk)
+                crosswalk = []
+
         # every crosswalk is represented by 5 points (4 corners + repetition of first corner)
         # -> delete every 5th element
-        del crosswalk_corners[4::5]
-        crosswalks_np = np.array([np.array([p.x, p.y, p.z]) for p in crosswalk_corners])
+        # del crosswalk_corners[4::5]
+        crosswalks_np = np.array([np.array([p.x, p.y, p.z]) for p in filtered_crosswalk_corners])
         sorted_crosswalks = np.reshape(crosswalks_np, (-1, 2, 2, 3))
 
         crosswalk_sub_segments = []
@@ -157,8 +184,8 @@ class PedPathPlanner:
         return crosswalk_sub_segments
 
     def get_sidewalk_waypoints(self, segment):
-        sidewalk_waypoints_right = []
-        sidewalk_waypoints_left = []
+        sidewalk_waypoints_right = {}
+        sidewalk_waypoints_left = {}
         start = segment[0]
         w_list = [start]
         if not start.is_junction:
@@ -168,14 +195,18 @@ class PedPathPlanner:
             l = w.get_left_lane()
             while l and l.lane_type != carla.LaneType.Driving:
                 if l.lane_type == carla.LaneType.Sidewalk:
-                    sidewalk_waypoints_left.append(l)
+                    if l.lane_id not in sidewalk_waypoints_left:
+                        sidewalk_waypoints_left[l.lane_id] = []
+                    sidewalk_waypoints_left[l.lane_id].append(l)
                 l = l.get_left_lane()
 
             # Check for sidewalk lane type until there are no waypoints by going right
             r = w.get_right_lane()
             while r and r.lane_type != carla.LaneType.Driving:
                 if r.lane_type == carla.LaneType.Sidewalk:
-                    sidewalk_waypoints_right.append(r)
+                    if r.lane_id not in sidewalk_waypoints_right:
+                        sidewalk_waypoints_right[r.lane_id] = []
+                    sidewalk_waypoints_right[r.lane_id].append(r)
                 r = r.get_right_lane()
 
         return [sidewalk_waypoints_left, sidewalk_waypoints_right]
@@ -254,8 +285,9 @@ class PedPathPlanner:
 
             for side in sidewalk_waypoints:
                 if side:
-                    sub_segments = self.generate_sub_segment_dicts(side, EdgeType.SIDEWALK)
-                    self.topology.extend(sub_segments)
+                    for lane in side.values():
+                        sub_segments = self.generate_sub_segment_dicts(lane, EdgeType.SIDEWALK)
+                        self.topology.extend(sub_segments)
 
         junction_sub_segments = self.get_all_junction_sub_segments(carla_topology)
         self.topology.extend(junction_sub_segments)
@@ -350,14 +382,15 @@ class PedPathPlanner:
             if opposite_waypoint:
                 current_id = self.id_map[xyz]
                 opposite_id = self.localize(opposite_waypoint.transform.location)
-                exit_w = self.graph.nodes[opposite_id]['waypoint']
-                distance = w.transform.location.distance(exit_w.transform.location)
+                if opposite_id:
+                    exit_w = self.graph.nodes[opposite_id]['waypoint']
+                    distance = w.transform.location.distance(exit_w.transform.location)
 
-                self.graph.add_edge(
-                    current_id, opposite_id,
-                    length=distance * self.jaywalking_weight_factor,
-                    entry_waypoint=w, exit_waypoint=exit_w,
-                    intersection=w.is_junction, type=EdgeType.JAYWALKING)
+                    self.graph.add_edge(
+                        current_id, opposite_id,
+                        length=distance * self.jaywalking_weight_factor,
+                        entry_waypoint=w, exit_waypoint=exit_w,
+                        intersection=w.is_junction, type=EdgeType.JAYWALKING)
 
     def localize(self, location):
         """
@@ -394,21 +427,22 @@ class PedPathPlanner:
         return np.linalg.norm(l1 - l2)
 
     def remove_unnecessary_start_end_nodes(self, route, origin_loc, destination_loc):
-        first = self.graph.nodes[route[0]]['waypoint'].transform.location
-        second = self.graph.nodes[route[1]]['waypoint'].transform.location
-        distance_first_second = first.distance(second)
-        distance_origin_second = origin_loc.distance(second)
+        if len(route) > 1:
+            first = self.graph.nodes[route[0]]['waypoint'].transform.location
+            second = self.graph.nodes[route[1]]['waypoint'].transform.location
+            distance_first_second = first.distance(second)
+            distance_origin_second = origin_loc.distance(second)
 
-        last = self.graph.nodes[route[-1]]['waypoint'].transform.location
-        second_to_last = self.graph.nodes[route[-2]]['waypoint'].transform.location
-        distance_last_second_to_last = last.distance(second_to_last)
-        distance_destination_second_to_last = destination_loc.distance(second_to_last)
+            last = self.graph.nodes[route[-1]]['waypoint'].transform.location
+            second_to_last = self.graph.nodes[route[-2]]['waypoint'].transform.location
+            distance_last_second_to_last = last.distance(second_to_last)
+            distance_destination_second_to_last = destination_loc.distance(second_to_last)
 
-        if distance_first_second > distance_origin_second:
-            del route[0]
+            if distance_first_second > distance_origin_second:
+                del route[0]
 
-        if distance_last_second_to_last > distance_destination_second_to_last:
-            del route[-1]
+            if distance_last_second_to_last > distance_destination_second_to_last:
+                del route[-1]
 
     def path_search(self, graph, origin, destination):
         """
@@ -424,5 +458,40 @@ class PedPathPlanner:
         route = nx.astar_path(graph, source=start, target=end, heuristic=self.distance_heuristic, weight='length')
 
         self.remove_unnecessary_start_end_nodes(route, origin, destination)
+
+        return route
+
+    def generate_route(self, origin, destination, graph_type, with_origin=False, carla_loc=False):
+        graph = self.graph_dict[graph_type]
+
+        if not carla_loc:
+            origin_loc = carla.Location(origin[0], origin[1], origin[2])
+            destination_loc = carla.Location(destination[0], destination[1], destination[2])
+        else:
+            origin_loc = origin
+            destination_loc = destination
+
+        route_node_ids = self.path_search(graph, origin_loc, destination_loc)
+
+        route = []
+        if with_origin:
+            route.append((origin_loc, False))
+        for i in range(len(route_node_ids) - 1):
+            crossing_road = False
+            edge = graph.edges[(route_node_ids[i], route_node_ids[i + 1])]
+            edge_type = edge['type']
+            if edge_type in [EdgeType.CROSSWALK, EdgeType.JAYWALKING, EdgeType.JAYWALKING_JUNCTION]:
+                crossing_road = True
+            if i == 0:
+                first_waypoint = graph.nodes[route_node_ids[i]]['waypoint']
+                route.append((first_waypoint.transform.location, False))
+            next_waypoint = graph.nodes[route_node_ids[i+1]]['waypoint']
+
+            route.append((next_waypoint.transform.location, crossing_road))
+
+        route.append((destination_loc, False))
+
+        if not carla_loc:
+            route = [(np.array([loc.x, loc.y, loc.z]), c) for loc, c in route]
 
         return route

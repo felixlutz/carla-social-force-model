@@ -1,0 +1,25 @@
+[map]
+map_name = 'Town10HD_Opt'
+map_path = 'Carla/Maps/'
+draw_obstacles = false
+sumo_coordinates = false
+unload_props = true
+spectator_location = [-24.0, 122.0, 10.0]
+spectator_rotation = [-90.0, 0.0, 0.0]
+
+[walker]
+pedestrian_seed = 2020
+despawn_on_arrival = true
+despawn_threshold = 2
+waypoint_distance = 10
+jaywalking_weight = 2
+draw_bounding_boxes = false
+ai_controller = false
+
+[[walker.ped_spawner]]
+spawn_location = [-24.0, 122.0, 1.0]
+generate_route = 'NO_JAYWALKING'
+destination = [-108.0, 125.0, 0.0]
+speed = 2.0
+quantity = 1
+spawn_time = 0.0
