@@ -27,10 +27,11 @@ class PedSpawnManager:
         # set pedestrian seed
         self.carla_sim.world.set_pedestrians_seed(self.ped_seed)
 
+        # initialize pedestrian path planner
         self.path_planner = PedPathPlanner(self.carla_sim.carla_map, waypoint_distance, jaywalking_weight)
 
         # get pedestrian spawners from scenario config
-        self.ped_spawners = self.extract_ped_info()
+        self.ped_spawners = self._extract_ped_info()
 
         self.ped_index = 0
         self.walker_dict = {}
@@ -48,10 +49,10 @@ class PedSpawnManager:
 
         for ped_spawner in self.ped_spawners:
             if ped_spawner.ready_to_spawn(sim_time):
-                self.spawn_pedestrian(ped_spawner)
+                self._spawn_pedestrian(ped_spawner)
                 ped_spawner.quantity -= 1
 
-    def extract_ped_info(self):
+    def _extract_ped_info(self):
         """
         Extracts pedestrian spawner information from the configuration file and converts coordinates if necessary.
         """
@@ -91,12 +92,12 @@ class PedSpawnManager:
 
         return ped_spawners
 
-    def spawn_pedestrian(self, ped_spawner):
+    def _spawn_pedestrian(self, ped_spawner):
         """
         Spawn pedestrian in both Carla and pedestrian simulation.
         """
         spawn_point = ped_spawner.carla_spawn_point
-        ped_name = self.generate_ped_name()
+        ped_name = self._generate_ped_name()
 
         random.seed(self.ped_seed)
         walker_bp = random.choice(self.carla_sim.walker_blueprints)
@@ -137,7 +138,7 @@ class PedSpawnManager:
 
             logging.info(f'Spawned pedestrian {ped_name}.')
 
-    def generate_ped_name(self):
+    def _generate_ped_name(self):
         """
         Generate pedestrian name with incrementing index.
         """
