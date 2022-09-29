@@ -19,8 +19,9 @@ class Force(ABC):
 
     @abstractmethod
     def _get_force(self, ped_state) -> np.ndarray:
-        """Abstract class to get social forces
-            return: an array of force vectors for each pedestrian
+        """
+        Abstract class to get social forces
+        return: an array of force vectors for each pedestrian
         """
         raise NotImplementedError
 
@@ -32,8 +33,10 @@ class Force(ABC):
 
 
 class GoalAttractiveForce(Force):
-    """Goal attractive force based on the original paper "Social force model for pedestrian dynamics"
-    from Helbing and Molnár (1995)"""
+    """
+    Goal attractive force based on the original paper "Social force model for pedestrian dynamics"
+    from Helbing and Molnár (1995)
+    """
 
     def __init__(self, step_length, sfm_config):
         super().__init__(step_length, sfm_config)
@@ -51,7 +54,8 @@ class GoalAttractiveForce(Force):
 
 
 class PedRepulsiveForce(Force):
-    """Ped to ped repulsive force based on the original paper "Social force model for pedestrian dynamics"
+    """
+    Ped to ped repulsive force based on the original paper "Social force model for pedestrian dynamics"
     from Helbing and Molnár (1995)
     """
 
@@ -73,8 +77,10 @@ class PedRepulsiveForce(Force):
 
 
 class SpaceRepulsiveForce(Force):
-    """Obstacles to ped repulsive force based on the original paper "Social force model for pedestrian dynamics"
-    from Helbing and Molnár (1995)"""
+    """
+    Obstacles to ped repulsive force based on the original paper "Social force model for pedestrian dynamics"
+    from Helbing and Molnár (1995)
+    """
 
     def __init__(self, step_length, sfm_config, obstacles):
         super().__init__(step_length, sfm_config)
@@ -94,11 +100,17 @@ class SpaceRepulsiveForce(Force):
             # append z=0 to force vectors to make them 3D
             z_values = np.zeros(F_aB.shape[0:2])
             F_aB = np.dstack((F_aB, z_values))
+
+            # deactivate obstacle force for pedestrians that are crossing the road
+            crossing_road = peds.crossing_road()
+            F_aB[crossing_road] *= 0
+
         return np.sum(F_aB, axis=1)
 
 
 class PedestrianForce(Force):
-    """Calculates the social force between pedestrians based on the paper "Experimental study of the behavioural
+    """
+    Calculates the social force between pedestrians based on the paper "Experimental study of the behavioural
     mechanisms underlying self-organization in human crowds" form Moussaïd et. al (2009)
     """
 
@@ -160,7 +172,8 @@ class PedestrianForce(Force):
 
 
 class ObstacleForce(Force):
-    """Calculates the force between pedestrians and the nearest obstacle based on the paper "Experimental study of
+    """
+    Calculates the force between pedestrians and the nearest obstacle based on the paper "Experimental study of
     the behavioural mechanisms underlying self-organization in human crowds" form Moussaïd et. al (2009)
     """
 
@@ -196,5 +209,9 @@ class ObstacleForce(Force):
         # append z=0 to force vectors to make them 3D
         z_values = np.zeros(force.shape[0:2])
         force = np.dstack((force, z_values))
+
+        # deactivate obstacle force for pedestrians that are crossing the road
+        crossing_road = peds.crossing_road()
+        force[crossing_road] *= 0
 
         return np.sum(force, axis=1)

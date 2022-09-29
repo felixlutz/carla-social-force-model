@@ -74,15 +74,24 @@ class PedPathPlanner:
         if with_origin:
             route.append((origin, False))
 
+        crossing_road_successor = False
+
         # get waypoint locations from graph using the node ids
         for i in range(len(route_node_ids) - 1):
 
             # append boolean to waypoint to indicate if a road is being crossed in order to reach waypoint
+            # (the successor of a waypoint, where crossing_road is set to true, is also set to true to guarantee that
+            # the pedestrian is back on a sidewalk before resetting the crossing_road boolean to false again)
             crossing_road = False
             edge = graph.edges[(route_node_ids[i], route_node_ids[i + 1])]
             edge_type = edge['type']
             if edge_type in [EdgeType.CROSSWALK, EdgeType.JAYWALKING, EdgeType.JAYWALKING_JUNCTION]:
                 crossing_road = True
+                crossing_road_successor = True
+            if not crossing_road and crossing_road_successor:
+                crossing_road = True
+                crossing_road_successor = False
+
             if i == 0:
                 first_waypoint = graph.nodes[route_node_ids[i]]['waypoint']
                 route.append((first_waypoint.transform.location, False))

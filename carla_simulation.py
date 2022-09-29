@@ -32,6 +32,8 @@ class CarlaSimulation:
         if self.unload_props:
             self.world.unload_map_layer(carla.MapLayer.Props)
             self.world.unload_map_layer(carla.MapLayer.StreetLights)
+            self.world.unload_map_layer(carla.MapLayer.Walls)
+            self.world.unload_map_layer(carla.MapLayer.Foliage)
 
         # Configuring CARLA simulation in sync mode.
         self.original_settings = self.world.get_settings()

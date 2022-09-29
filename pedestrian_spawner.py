@@ -67,14 +67,25 @@ class PedSpawnManager:
 
                 spawn_location = np.array(spawn_point['spawn_location'])
                 speed = spawn_point['speed']
+                destination = np.array(spawn_point['destination'])
+
+                # generate route or use manually defined waypoints depending on configuration
                 generate_route = spawn_point.get('generate_route')
                 if generate_route:
-                    destination = np.array(spawn_point['destination'])
                     waypoint_tuples = self.path_planner.generate_route(spawn_location, destination,
                                                                        GraphType[generate_route])
                     waypoints = np.array([w[0] for w in waypoint_tuples])
+                    crossing_road_bools = [w[1] for w in waypoint_tuples]
                 else:
-                    waypoints = np.array(spawn_point['waypoints'])
+                    wp_list = spawn_point.get('waypoints', [])
+                    wp_list.append(destination)
+                    waypoints = np.array(wp_list)
+
+                    crossing_road_bools = spawn_point.get('crossing_road_bools', [False] * len(waypoints))
+                    if len(waypoints) != len(crossing_road_bools):
+                        logging.warning('Length of waypoints and crossing_road_bools is not equal! '
+                                        'Waypoints may get cut of!')
+
                 quantity = spawn_point.get('quantity', 1)
                 spawn_time = spawn_point.get('spawn_time', 0.0)
                 spawn_interval = spawn_point.get('spawn_interval', 1.0)
@@ -87,7 +98,8 @@ class PedSpawnManager:
                     else:
                         waypoints = stateutils.convert_coordinates(waypoints, sumo_offset)
 
-                ped_spawner = PedSpawner(spawn_location, waypoints, speed, quantity, spawn_time, spawn_interval)
+                ped_spawner = PedSpawner(spawn_location, waypoints, crossing_road_bools, speed, quantity, spawn_time,
+                                         spawn_interval)
                 ped_spawners.append(ped_spawner)
 
         return ped_spawners
@@ -153,19 +165,20 @@ class PedSpawner:
     Class containing all the information necessary to spawn one or multiple pedestrians from one spawn point.
     """
 
-    def __init__(self, spawn_location, waypoints, speed, quantity, spawn_time, spawn_interval):
+    def __init__(self, spawn_location, waypoints, crossing_road_bools, speed, quantity, spawn_time, spawn_interval):
         self.spawn_location = spawn_location
         self.target_speed = speed
         self.quantity = quantity
         self.spawn_interval = spawn_interval
         self.next_spawn_time = spawn_time
+        self.crossing_road = crossing_road_bools[0]
 
         if waypoints.ndim > 1:
             self.first_waypoint = waypoints[0]
-            self.remaining_waypoints = waypoints[1:].tolist()
+            self.remaining_waypoint_tuples = list(zip(waypoints[1:].tolist(), crossing_road_bools[1:]))
         else:
             self.first_waypoint = waypoints
-            self.remaining_waypoints = []
+            self.remaining_waypoint_tuples = []
 
         self.carla_spawn_point = self.generate_carla_spawn_point()
         direction = self.carla_spawn_point.get_forward_vector()
@@ -191,9 +204,10 @@ class PedSpawner:
         :param radius:
         :return: initial pedestrian state and remaining waypoints
         """
-        ped_state = (name, carla_id, self.spawn_location, self.velocity, self.first_waypoint, radius, self.target_speed)
+        ped_state = (name, carla_id, self.spawn_location, self.velocity, self.first_waypoint, self.crossing_road,
+                     radius, self.target_speed)
 
-        return ped_state, self.remaining_waypoints
+        return ped_state, self.remaining_waypoint_tuples
 
     def generate_carla_spawn_point(self):
         """

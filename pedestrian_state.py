@@ -15,7 +15,8 @@ class PedState:
         self.max_speed_factor = sfm_config.get('max_speed_factor', 1.3)
 
         self.ped_state_dtype = [('name', 'U8'), ('id', 'i4'), ('loc', 'f8', (3,)), ('vel', 'f8', (3,)),
-                                ('next_waypoint', 'f8', (3,)), ('radius', 'f8'), ('target_speed', 'f8')]
+                                ('next_waypoint', 'f8', (3,)), ('crossing_road', '?'), ('radius', 'f8'),
+                                ('target_speed', 'f8')]
 
         self.state = None
         self.new_velocities = None
@@ -60,6 +61,9 @@ class PedState:
     def next_waypoint(self) -> np.ndarray:
         return self.state['next_waypoint']
 
+    def crossing_road(self) -> np.ndarray:
+        return self.state['crossing_road']
+
     def radius(self) -> np.ndarray:
         return self.state['radius']
 
@@ -90,7 +94,8 @@ class PedState:
         self.state['vel'][self.state['id'] == walker_id] = velocity
 
     def update_next_waypoint(self, ped_name, next_waypoint):
-        self.state['next_waypoint'][self.state['name'] == ped_name] = next_waypoint
+        self.state['next_waypoint'][self.state['name'] == ped_name] = next_waypoint[0]
+        self.state['crossing_road'][self.state['name'] == ped_name] = next_waypoint[1]
 
     def desired_directions(self) -> np.ndarray:
         return stateutils.desired_directions(self.state)

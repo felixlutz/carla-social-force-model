@@ -9,147 +9,147 @@ spectator_rotation = [-90.0, 0.0, 0.0]
 [walker]
 pedestrian_seed = 2020
 despawn_on_arrival = false
-despawn_threshold = 0.2
+waypoint_threshold = 1
 variate_speed = 0.1
 draw_bounding_boxes = false
 ai_controller = true
 
 [[walker.ped_spawner]]
 spawn_location = [87.00, -8.50, 1.00]
-waypoints = [67.00, -8.50, 1.00]
+destination = [67.00, -8.50, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [86.51, -5.41, 1.00]
-waypoints = [67.49, -11.59, 1.00]
+destination = [67.49, -11.59, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [85.09, -2.62, 1.00]
-waypoints = [68.91, -14.38, 1.00]
+destination = [68.91, -14.38, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [82.88, -0.41, 1.00]
-waypoints = [71.12, -16.59, 1.00]
+destination = [71.12, -16.59, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [80.09, 1.01, 1.00]
-waypoints = [73.91, -18.01, 1.00]
+destination = [73.91, -18.01, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [77.00, 1.50, 1.00]
-waypoints = [77.00, -18.50, 1.00]
+destination = [77.00, -18.50, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [73.91, 1.01, 1.00]
-waypoints = [80.09, -18.01, 1.00]
+destination = [80.09, -18.01, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [71.12, -0.41, 1.00]
-waypoints = [82.88, -16.59, 1.00]
+destination = [82.88, -16.59, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [68.91, -2.62, 1.00]
-waypoints = [85.09, -14.38, 1.00]
+destination = [85.09, -14.38, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [67.49, -5.41, 1.00]
-waypoints = [86.51, -11.59, 1.00]
+destination = [86.51, -11.59, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [67.00, -8.50, 1.00]
-waypoints = [87.00, -8.50, 1.00]
+destination = [87.00, -8.50, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [67.49, -11.59, 1.00]
-waypoints = [86.51, -5.41, 1.00]
+destination = [86.51, -5.41, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [68.91, -14.38, 1.00]
-waypoints = [85.09, -2.62, 1.00]
+destination = [85.09, -2.62, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [71.12, -16.59, 1.00]
-waypoints = [82.88, -0.41, 1.00]
+destination = [82.88, -0.41, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [73.91, -18.01, 1.00]
-waypoints = [80.09, 1.01, 1.00]
+destination = [80.09, 1.01, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [77.00, -18.50, 1.00]
-waypoints = [77.00, 1.50, 1.00]
+destination = [77.00, 1.50, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [80.09, -18.01, 1.00]
-waypoints = [73.91, 1.01, 1.00]
+destination = [73.91, 1.01, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [82.88, -16.59, 1.00]
-waypoints = [71.12, -0.41, 1.00]
+destination = [71.12, -0.41, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [85.09, -14.38, 1.00]
-waypoints = [68.91, -2.62, 1.00]
+destination = [68.91, -2.62, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
 [[walker.ped_spawner]]
 spawn_location = [86.51, -11.59, 1.00]
-waypoints = [67.49, -5.41, 1.00]
+destination = [67.49, -5.41, 1.00]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0

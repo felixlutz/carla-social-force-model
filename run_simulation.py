@@ -35,7 +35,7 @@ class SimulationRunner:
         walker_config = scenario_config.get('walker', {})
         self.draw_bounding_boxes = walker_config.get('draw_bounding_boxes', False)
         self.despawn_on_arrival = walker_config.get('despawn_on_arrival', True)
-        self.despawn_threshold = walker_config.get('despawn_threshold', 0.2)
+        self.waypoint_threshold = walker_config.get('waypoint_threshold', 2.0)
 
         self.walker_dict = ped_spawn_manager.walker_dict
         self.waypoint_dict = ped_spawn_manager.waypoint_dict
@@ -50,7 +50,7 @@ class SimulationRunner:
 
         # get all pedestrians that arrived at their next waypoint and either assign a new waypoint or despawn
         # them if they reached their final destination
-        arrived_peds = self.ped_sim.get_arrived_peds(self.despawn_threshold)
+        arrived_peds = self.ped_sim.get_arrived_peds(self.waypoint_threshold)
         for ped_name in arrived_peds:
             remaining_waypoints = self.waypoint_dict[ped_name]
 

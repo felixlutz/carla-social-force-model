@@ -10,7 +10,7 @@ spectator_rotation = [-70.0, 180.0, 0.0]
 [walker]
 pedestrian_seed = 2021
 despawn_on_arrival = true
-despawn_threshold = 2
+waypoint_threshold = 2
 waypoint_distance = 5
 jaywalking_weight = 2
 draw_bounding_boxes = false
@@ -18,7 +18,7 @@ ai_controller = false
 
 [[walker.ped_spawner]]
 spawn_location = [92.0, 91.0, 1.0]
-generate_route = 'NO_JAYWALKING'
+generate_route = 'JAYWALKING'
 destination = [118.0, 67.0, 0.0]
 speed = 2.5
 quantity = 1
