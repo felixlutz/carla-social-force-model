@@ -7,15 +7,16 @@ spectator_location = [234.0, 5.0, 10]
 spectator_rotation = [-40.0, -90.0, 0.0]
 
 [walker]
-pedestrian_seed = 2015
+pedestrian_seed = 2000
 despawn_on_arrival = true
-despawn_threshold = 0.2
+waypoint_threshold = 2
+variate_speed = 0.1
 draw_bounding_boxes = false
 ai_controller = true
 
 [[walker.ped_spawner]]
 spawn_location = [244.0, -6.0, 0.0]
-waypoints = [215.0, -6.0, 0.0]
+destination = [215.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -23,7 +24,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [245.0, -7.0, 0.0]
-waypoints = [215.0, -6.0, 0.0]
+destination = [215.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -31,7 +32,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [247.0, -5.0, 0.0]
-waypoints = [215.0, -6.0, 0.0]
+destination = [215.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -39,7 +40,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [243.0, -5.0, 0.0]
-waypoints = [215.0, -6.0, 0.0]
+destination = [215.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -47,7 +48,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [244.0, -7.0, 0.0]
-waypoints = [215.0, -6.0, 0.0]
+destination = [215.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -55,7 +56,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [251.0, -5.0, 0.0]
-waypoints = [215.0, -6.0, 0.0]
+destination = [215.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -63,7 +64,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [249.0, -7.0, 0.0]
-waypoints = [215.0, -6.0, 0.0]
+destination = [215.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -71,7 +72,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [248.0, -6.0, 0.0]
-waypoints = [215.0, -6.0, 0.0]
+destination = [215.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -79,7 +80,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [247.0, -7.0, 0.0]
-waypoints = [215.0, -6.0, 0.0]
+destination = [215.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -87,7 +88,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [248.0, -7.0, 0.0]
-waypoints = [215.0, -6.0, 0.0]
+destination = [215.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -95,7 +96,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [220.0, -5.0, 0.0]
-waypoints = [250.0, -6.0, 0.0]
+destination = [250.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -103,7 +104,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [221.0, -6.0, 0.0]
-waypoints = [250.0, -6.0, 0.0]
+destination = [250.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -111,7 +112,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [219.0, -6.5, 0.0]
-waypoints = [250.0, -6.0, 0.0]
+destination = [250.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -119,7 +120,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [220.0, -7.0, 0.0]
-waypoints = [250.0, -6.0, 0.0]
+destination = [250.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -127,7 +128,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [221.0, -5, 0.0]
-waypoints = [250.0, -6.0, 0.0]
+destination = [250.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -135,7 +136,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [224.0, -5.0, 0.0]
-waypoints = [250.0, -6.0, 0.0]
+destination = [250.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -143,7 +144,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [225.0, -5, 0.0]
-waypoints = [250.0, -6.0, 0.0]
+destination = [250.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -151,7 +152,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [223.0, -6.5, 0.0]
-waypoints = [250.0, -6.0, 0.0]
+destination = [250.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -159,7 +160,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [224.0, -7.0, 0.0]
-waypoints = [250.0, -6.0, 0.0]
+destination = [250.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
@@ -167,7 +168,7 @@ spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [225.0, -6.0, 0.0]
-waypoints = [250.0, -6.0, 0.0]
+destination = [250.0, -6.0, 0.0]
 speed = 1.0
 quantity = 1
 spawn_time = 0.0
