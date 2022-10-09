@@ -33,7 +33,7 @@ class SceneVisualizer:
 
     def plot(self):
         """Main method to create plot"""
-        self.plot_obstacles()
+        self.plot_borders()
 
         for ped in range(self.scene.peds.size()):
             x = self.states[:, ped]['loc'][:, 0]
@@ -126,15 +126,15 @@ class SceneVisualizer:
             ), 'agent_colors must be the same length as the agents'
             self.human_collection.set_facecolor(self.agent_colors)
 
-    def plot_obstacles(self):
-        obstacles = self.scene.get_obstacles()
+    def plot_borders(self):
+        borders = self.scene.get_borders()
 
-        if obstacles is not None:
-            for o in obstacles:
+        if borders is not None:
+            for o in borders:
                 self.ax.plot(o[:, 0], o[:, 1], lw=2, color='black')
 
     def animation_init(self):
-        self.plot_obstacles()
+        self.plot_borders()
         self.ax.add_collection(self.human_collection)
 
         return self.human_collection,

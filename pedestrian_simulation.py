@@ -5,9 +5,11 @@ from pedestrian_state import PedState
 
 
 class PedestrianSimulation:
-    def __init__(self, obstacles, sfm_config, step_length):
+    def __init__(self, borders, border_section_info, obstacles, sfm_config, step_length):
         self.sfm_config = sfm_config
 
+        self.borders = borders
+        self.section_info = border_section_info
         self.obstacles = obstacles
 
         self.peds = PedState(step_length, sfm_config)
@@ -24,12 +26,14 @@ class PedestrianSimulation:
             force_list.append(forces.GoalAttractiveForce(self.delta_t, self.sfm_config))
         if activated_forces.get('pedestrian_force', False):
             force_list.append(forces.PedestrianForce(self.delta_t, self.sfm_config))
-        if activated_forces.get('obstacle_force', False):
-            force_list.append(forces.ObstacleForce(self.delta_t, self.sfm_config, self.obstacles))
+        if activated_forces.get('border_force', False):
+            force_list.append(forces.BorderForce(self.delta_t, self.sfm_config, self.borders, self.section_info))
+        if activated_forces.get('obstacle_evasion_force', False):
+            force_list.append(forces.ObstacleEvasionForce(self.delta_t, self.sfm_config, self.obstacles))
         if activated_forces.get('ped_repulsive_force', False):
             force_list.append(forces.PedRepulsiveForce(self.delta_t, self.sfm_config))
         if activated_forces.get('space_repulsive_force', False):
-            force_list.append(forces.SpaceRepulsiveForce(self.delta_t, self.sfm_config, self.obstacles))
+            force_list.append(forces.SpaceRepulsiveForce(self.delta_t, self.sfm_config, self.borders))
 
         return force_list
 
@@ -73,8 +77,8 @@ class PedestrianSimulation:
     def get_new_velocities(self):
         return self.peds.get_new_velocities()
 
-    def get_obstacles(self):
-        return self.obstacles
+    def get_borders(self):
+        return self.borders
 
     def get_states(self):
         return self.peds.get_all_states()

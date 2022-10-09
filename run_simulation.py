@@ -10,7 +10,7 @@ import visualization
 from carla_simulation import CarlaSimulation
 from pedestrian_simulation import PedestrianSimulation
 from pedestrian_spawner import PedSpawnManager
-from sidewalk import extract_sidewalk
+from static_obstacles import extract_sidewalk, extract_obstacles
 from stateutils import convert_coordinates
 
 
@@ -117,7 +117,6 @@ class SimulationRunner:
                 sv.animate()
 
 
-
 def simulation_loop(args):
     """
     Entry point for CARLA simulation with social force pedestrian model. Main simulation loop.
@@ -130,21 +129,34 @@ def simulation_loop(args):
     # initialize CARLA simulation
     carla_simulation = CarlaSimulation(args, scenario_config)
 
-    # extract obstacle borders from scenario config
-    obstacle_borders, carla_obstacle_borders = extract_obstacle_info(scenario_config)
+    # extract borders from scenario config
+    borders, section_info, carla_borders = extract_borders_from_config(scenario_config)
 
-    # extract sidewalk borders from map and add to other obstacle borders
-    sidewalk_borders, carla_sidewalk_borders = extract_sidewalk(carla_simulation.carla_map, scenario_config)
-    obstacle_borders.extend(sidewalk_borders)
-    carla_obstacle_borders.extend(carla_sidewalk_borders)
+    # extract sidewalk borders from map and add to other borders
+    sidewalk_borders, sidewalk_section_info, carla_sidewalk_borders = extract_sidewalk(carla_simulation.carla_map,
+                                                                                       scenario_config)
+    borders.extend(sidewalk_borders)
+    section_info.extend(sidewalk_section_info)
+    carla_borders.extend(carla_sidewalk_borders)
+
+    # extract obstacles from map
+    obstacle_positions, obstacle_borders, carla_obstacle_borders = extract_obstacles(carla_simulation.world,
+                                                                                     scenario_config)
+
+    # # only for comparison purposes (obstacle evasion with simple border force vs. obstacle evasion force)
+    # borders.extend(obstacle_borders)
+    # section_info.extend([list(z) for z in zip(obstacle_positions, [20] * len(obstacle_positions))])
+
+    carla_borders.extend(carla_obstacle_borders)
+    obstacles = zip(obstacle_positions, obstacle_borders)
 
     # draw obstacles
     if carla_simulation.draw_obstacles:
-        for border in carla_obstacle_borders:
+        for border in carla_borders:
             carla_simulation.draw_points(border)
 
     # initialize pedestrian simulation
-    pedestrian_simulation = PedestrianSimulation(obstacle_borders, sfm_config, args.step_length)
+    pedestrian_simulation = PedestrianSimulation(borders, section_info, obstacles, sfm_config, args.step_length)
 
     # initialize pedestrian spawn manager
     ped_spawn_manager = PedSpawnManager(scenario_config, carla_simulation, pedestrian_simulation)
@@ -161,6 +173,7 @@ def simulation_loop(args):
 
             end = time.time()
             elapsed = end - start
+            # print(f'Elapsed time: {elapsed}')
             if elapsed < args.step_length:
                 time.sleep(args.step_length - elapsed)
 
@@ -184,13 +197,14 @@ def load_config(config_path):
     return config
 
 
-def extract_obstacle_info(scenario_config):
+def extract_borders_from_config(scenario_config):
     sumo_coordinates = scenario_config['map']['sumo_coordinates']
     sumo_offset = scenario_config.get('map').get('sumo_offset')
     obstacle_config = scenario_config.get('obstacles')
 
     obstacles = []
     carla_obstacles = []
+    section_info = []
     if obstacle_config is not None:
         borders = obstacle_config.get('borders', [])
         obstacle_resolution = obstacle_config.get('resolution', 0.1)
@@ -207,11 +221,14 @@ def extract_obstacle_info(scenario_config):
 
             border_line = np.column_stack((np.linspace(start_point[0], end_point[0], samples),
                                            np.linspace(start_point[1], end_point[1], samples)))
-            obstacles.append(border_line)
+            middle_loc = border_line[len(border_line) // 2]
+            section_length = len(border_line) * obstacle_resolution
 
+            section_info.append([middle_loc, section_length])
+            obstacles.append(border_line)
             carla_obstacles.append([carla.Vector3D(p[0], p[1], 0) for p in border_line])
 
-    return obstacles, carla_obstacles
+    return obstacles, section_info, carla_obstacles
 
 
 if __name__ == '__main__':

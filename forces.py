@@ -171,47 +171,151 @@ class PedestrianForce(Force):
         return np.sum(force, axis=1)
 
 
-class ObstacleForce(Force):
+class BorderForce(Force):
     """
-    Calculates the force between pedestrians and the nearest obstacle based on the paper "Experimental study of
-    the behavioural mechanisms underlying self-organization in human crowds" form Moussaïd et. al (2009)
+    Calculates the force between pedestrians and the nearest border (e.g. sidewalk border) based on the paper
+    "Experimental study of the behavioural mechanisms underlying self-organization in human crowds" form
+    Moussaïd et. al (2009)
+    """
+
+    def __init__(self, step_length, sfm_config, borders, section_info):
+        super().__init__(step_length, sfm_config)
+        self.borders = borders
+        section_info = np.array(section_info)
+        self.section_center = np.vstack(section_info[:, 0])
+        self.section_length = section_info[:, 1]
+
+        self.border_force_config = self.sfm_config['border_force']
+        self.a = self.border_force_config.get('a', 3.0)
+        self.b = self.border_force_config.get('b', 0.1)
+
+    def _get_force(self, peds):
+
+        if not self.borders:
+            return np.zeros((peds.size(), 3))
+
+        forces = []
+
+        for ped in peds.state:
+            loc = ped['loc'][:2]
+
+            # filter out borders that are too far away to be relevant
+            distances = np.linalg.norm(loc - self.section_center, axis=-1)
+            indices = distances < self.section_length
+            close_borders = np.array(self.borders)[indices]
+
+            # get the closest point of each border within relevant range
+            closest_i = [np.argmin(np.linalg.norm(loc - border, axis=-1)) for border in close_borders]
+            closest_points = [border[i] for border, i in zip(close_borders, closest_i)]
+
+            direction, distance = stateutils.normalize(loc - closest_points)
+
+            if self.use_ped_radius:
+                distance -= ped['radius']
+
+            f = direction * self.a * np.exp(-1.0 * np.expand_dims(distance, -1) / self.b)
+
+            forces.append(np.sum(f, axis=0))
+
+        force = np.array(forces)
+
+        # append z=0 to force vectors to make them 3D
+        z_values = np.zeros(len(force))
+        force = np.column_stack((force, z_values))
+
+        # deactivate border force for pedestrians that are crossing the road
+        crossing_road = peds.crossing_road()
+        force[crossing_road] *= 0
+
+        return force
+
+
+class ObstacleEvasionForce(Force):
+    """
+    Calculates the social force between pedestrians and obstacles based on the pedestrian interaction force of the paper
+    "Experimental study of the behavioural mechanisms underlying self-organization in human crowds" form Moussaïd
+    et. al (2009)
     """
 
     def __init__(self, step_length, sfm_config, obstacles):
         super().__init__(step_length, sfm_config)
-        self.obstacles = obstacles
+        obstacle_locs, obstacle_borders = zip(*obstacles)
+        self.obstacle_locs = np.array(obstacle_locs)
+        self.obstacle_borders = np.array(obstacle_borders)
 
-        self.obstacle_force_config = self.sfm_config['obstacle_force']
-        self.a = self.obstacle_force_config.get('a', 3.0)
-        self.b = self.obstacle_force_config.get('b', 0.1)
+        # set model parameters
+        self.ped_force_config = self.sfm_config['obstacle_evasion_force']
+        self.lambda_weight = self.ped_force_config.get('lambda', 2.0)
+        self.A = self.ped_force_config.get('A', 4.5)
+        self.gamma = self.ped_force_config.get('gamma', 0.35)
+        self.n = self.ped_force_config.get('n', 2.0)
+        self.n_prime = self.ped_force_config.get('n_prime', 3.0)
+        self.epsilon = self.ped_force_config.get('epsilon', 0.005)
+        self.perception_threshold = self.ped_force_config.get('perception_threshold', 20)
 
     def _get_force(self, peds):
-
-        if not self.obstacles:
+        if self.obstacle_locs.size == 0:
             return np.zeros((peds.size(), 3))
 
-        ped_loc = np.expand_dims(peds.loc()[:, :2], 1)
-        closest_i = [
-            np.argmin(np.linalg.norm(ped_loc - np.expand_dims(boundary, 0), axis=-1), axis=1)
-            for boundary in self.obstacles
-        ]
-        closest_points = np.swapaxes(
-            np.stack([boundary[i] for boundary, i in zip(self.obstacles, closest_i)]),
-            0, 1)  # index order: pedestrian, boundary, coordinates
+        forces = []
 
-        direction, distance = stateutils.normalize(ped_loc - closest_points)
+        for ped in peds.state:
+            loc = ped['loc'][:2]
+            vel = ped['vel'][:2]
 
-        if self.use_ped_radius:
-            distance = distance - np.expand_dims(peds.radius(), -1)
+            # filter out obstacles that are outside the defined perception threshold
+            distances = np.linalg.norm(loc - self.obstacle_locs, axis=-1)
+            close_borders = np.array(self.obstacle_borders)[distances < self.perception_threshold]
 
-        force = direction * self.a * np.exp(-1.0 * np.expand_dims(distance, -1) / self.b)
+            # get the closest border point of each obstacle
+            closest_i = [np.argmin(np.linalg.norm(loc - border, axis=-1)) for border in close_borders]
+            closest_points = [border[i] for border, i in zip(close_borders, closest_i)]
+
+            diff_direction, diff_length = stateutils.normalize(loc - closest_points)
+            vel_diff = -1.0 * (vel - np.zeros((len(closest_points), 2)))
+
+            # subtract the radii of the pedestrians from the distances
+            if self.use_ped_radius:
+                diff_length -= ped['radius']
+
+            # compute interaction direction t_ij
+            interaction_vec = self.lambda_weight * vel_diff + diff_direction
+            interaction_direction, interaction_length = stateutils.normalize(interaction_vec)
+
+            # compute n_ij (normal vector of t_ij orientated to the left)
+            left_normal_direction = np.zeros(np.shape(interaction_direction))
+            left_normal_direction[..., 0] = interaction_direction[..., 1] * -1
+            left_normal_direction[..., 1] = interaction_direction[..., 0]
+
+            # compute angle theta (between interaction and position difference direction)
+            theta = stateutils.angle_diff_2d(interaction_direction, diff_direction)
+
+            # compute model parameter B = gamma * ||D||
+            B = self.gamma * interaction_length
+
+            # apply bias to right-hand side for evasions
+            theta += B * self.epsilon
+
+            # deceleration force along interaction direction t_ij
+            f_v_value = (-1.0 * self.A
+                         * np.exp(-1.0 * diff_length / B - np.square(self.n_prime * B * theta)))
+
+            # force describing the directional change along n_ij (normal vector of t_ij orientated to the left)
+            f_theta_value = (-1.0 * self.A * np.sign(theta)
+                             * np.exp(-1.0 * diff_length / B - np.square(self.n * B * theta)))
+
+            # build force vectors from force value and direction
+            f_v = np.expand_dims(f_v_value, -1) * interaction_direction
+            f_theta = np.expand_dims(f_theta_value, -1) * left_normal_direction
+
+            f = f_v + f_theta
+
+            forces.append(np.sum(f, axis=0))
+
+        force = np.array(forces)
 
         # append z=0 to force vectors to make them 3D
-        z_values = np.zeros(force.shape[0:2])
-        force = np.dstack((force, z_values))
+        z_values = np.zeros(len(force))
+        force = np.column_stack((force, z_values))
 
-        # deactivate obstacle force for pedestrians that are crossing the road
-        crossing_road = peds.crossing_road()
-        force[crossing_road] *= 0
-
-        return np.sum(force, axis=1)
+        return force

@@ -4,7 +4,7 @@ map_path = 'Carla/Maps/'
 draw_obstacles = false
 sumo_coordinates = false
 unload_props = false
-spectator_location = [-24.0, 122.0, 10.0]
+spectator_location = [-112.3, -50.5, 10.0]
 spectator_rotation = [-90.0, 0.0, 0.0]
 
 [walker]
@@ -14,12 +14,17 @@ waypoint_threshold = 2
 waypoint_distance = 10
 jaywalking_weight = 2
 draw_bounding_boxes = false
-ai_controller = false
+ai_controller = true
 
 [[walker.ped_spawner]]
-spawn_location = [-24.0, 122.0, 1.0]
+spawn_location = [-112.3, -50.5, 1.0]
 generate_route = 'JAYWALKING'
-destination = [-108.0, 125.0, 0.0]
-speed = 2.0
+destination = [-120.9, 11.6, 0.0]
+speed = 1.0
 quantity = 1
 spawn_time = 0.0
+
+[obstacles]
+resolution = 0.1
+ellipse_shape = true
+max_obstacle_z_pos = 0.3
