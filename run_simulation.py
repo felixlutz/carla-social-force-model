@@ -10,7 +10,7 @@ import visualization
 from carla_simulation import CarlaSimulation
 from pedestrian_simulation import PedestrianSimulation
 from pedestrian_spawner import PedSpawnManager
-from static_obstacles import extract_sidewalk, extract_obstacles
+from obstacles import extract_sidewalk, extract_obstacles, get_dynamic_obstacles
 from stateutils import convert_coordinates
 
 
@@ -82,6 +82,16 @@ class SimulationRunner:
             if self.draw_bounding_boxes:
                 self.carla_sim.draw_bounding_box(actor_id, self.step_length)
 
+        obstacle_pos, obstacle_vel, borders, carla_borders = get_dynamic_obstacles(self.carla_sim.world,
+                                                                                   self.scenario_config)
+        if obstacle_pos:
+            dynamic_obstacles = list(zip(obstacle_pos, borders))
+            self.ped_sim.update_dynamic_obstacles(dynamic_obstacles, obstacle_vel)
+
+            if self.carla_sim.draw_obstacles:
+                for border in carla_borders:
+                    self.carla_sim.draw_points(border, self.step_length)
+
         # Tick pedestrian simulation and propagate new velocities resulting from social force model to CARLA
         self.ped_sim.tick()
         new_velocities = self.ped_sim.get_new_velocities()
@@ -148,12 +158,12 @@ def simulation_loop(args):
     # section_info.extend([list(z) for z in zip(obstacle_positions, [20] * len(obstacle_positions))])
 
     carla_borders.extend(carla_obstacle_borders)
-    obstacles = zip(obstacle_positions, obstacle_borders)
+    obstacles = list(zip(obstacle_positions, obstacle_borders))
 
     # draw obstacles
     if carla_simulation.draw_obstacles:
         for border in carla_borders:
-            carla_simulation.draw_points(border)
+            carla_simulation.draw_points(border, 30)
 
     # initialize pedestrian simulation
     pedestrian_simulation = PedestrianSimulation(borders, section_info, obstacles, sfm_config, args.step_length)

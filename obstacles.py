@@ -201,10 +201,7 @@ def extract_obstacles(carla_world, scenario_config):
         if vertices[0].z > max_obstacle_z_pos:
             continue
 
-        border_points = []
-
         if ellipse_shape:
-            ellipse = []
 
             # In Carla the object location isn't always the same as the center of the objects bounding box.
             # (e.g. the location of a streetlight is where its pole is placed on the ground, but its bounding box center
@@ -230,16 +227,7 @@ def extract_obstacles(carla_world, scenario_config):
                 extent_x = bb.extent.x
                 extent_y = bb.extent.y
 
-            # Generate border points in shape of ellipse
-            circumference = 2 * extent_x + 2 * extent_y
-            samples = max([6, int(circumference / resolution)])
-            for theta in (np.pi * 2 * i / samples for i in range(samples)):
-                point = [extent_x * np.cos(theta) * np.sqrt(2), extent_y * np.sin(theta) * np.sqrt(2), 0.0]
-                point_loc = transform.transform(carla.Location(point[0], point[1], point[2]))
-
-                ellipse.append(point_loc)
-
-            border_points.extend(ellipse)
+            border_points = generate_ellipse_border(transform, extent_x, extent_y, resolution)
 
         else:
             borders = []
@@ -268,8 +256,7 @@ def extract_obstacles(carla_world, scenario_config):
             else:
                 continue
 
-            border_points.extend(
-                [carla.Location(p[0], p[1], vertices[0].z) for border_line in borders for p in border_line])
+            border_points = [carla.Location(p[0], p[1], vertices[0].z) for border_line in borders for p in border_line]
 
         carla_obstacle_borders.append(border_points)
         obstacle_positions.append(center)
@@ -277,6 +264,21 @@ def extract_obstacles(carla_world, scenario_config):
     numpy_obstacle_borders = [np.array([[vec.x, vec.y] for vec in border]) for border in carla_obstacle_borders]
 
     return obstacle_positions, numpy_obstacle_borders, carla_obstacle_borders
+
+
+def generate_ellipse_border(transform, extent_x, extent_y, resolution, size_factor=np.sqrt(2)):
+    """Generate border points in shape of ellipse"""
+
+    ellipse = []
+    circumference = 2 * extent_x + 2 * extent_y
+    samples = max([6, int(circumference / resolution)])
+    for theta in (np.pi * 2 * i / samples for i in range(samples)):
+        point = [extent_x * np.cos(theta) * size_factor, extent_y * np.sin(theta) * size_factor, 0.0]
+        point_loc = transform.transform(carla.Location(point[0], point[1], point[2]))
+
+        ellipse.append(point_loc)
+
+    return ellipse
 
 
 def bb_contains(bounding_box, location, transform):
@@ -290,3 +292,31 @@ def bb_contains(bounding_box, location, transform):
     z_cond = abs(diff.z) < bounding_box.extent.z
 
     return x_cond and y_cond and z_cond
+
+
+def get_dynamic_obstacles(carla_world, scenario_config):
+    """Get dynamic obstacles from CARLA world (vehicles) and generate obstacle border around bounding box"""
+
+    resolution = scenario_config.get('obstacles', {}).get('resolution', 0.1)
+
+    vehicles = carla_world.get_actors().filter("*vehicle*")
+
+    carla_obstacle_borders = []
+    obstacle_positions = []
+    obstacle_velocity = []
+
+    for v in vehicles:
+        bb = v.bounding_box
+        transform = v.get_transform()
+        center = np.array([transform.location.x, transform.location.y])
+        carla_velocity = v.get_velocity()
+        velocity = np.array([carla_velocity.x, carla_velocity.y])
+        obstacle_velocity.append(velocity)
+
+        border_points = generate_ellipse_border(transform, bb.extent.x, bb.extent.y, resolution, 2)
+        carla_obstacle_borders.append(border_points)
+        obstacle_positions.append(center)
+
+    numpy_obstacle_borders = [np.array([[vec.x, vec.y] for vec in border]) for border in carla_obstacle_borders]
+
+    return obstacle_positions, obstacle_velocity, numpy_obstacle_borders, carla_obstacle_borders

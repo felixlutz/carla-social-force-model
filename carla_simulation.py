@@ -131,9 +131,9 @@ class CarlaSimulation:
         self.world.debug.draw_box(bb, actor.get_transform().rotation, color=carla.Color(0, 0, 0, 0), thickness=0.01,
                                   life_time=step_length + 0.00000001)
 
-    def draw_points(self, points):
+    def draw_points(self, points, lt=0):
         for point in points:
-            self.world.debug.draw_point(point, size=0.05, life_time=0)
+            self.world.debug.draw_point(point, size=0.05, life_time=lt + 0.00000001)
 
     def close(self):
         # reset CARLA simulation settings

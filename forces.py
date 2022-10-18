@@ -237,25 +237,32 @@ class ObstacleEvasionForce(Force):
     et. al (2009)
     """
 
-    def __init__(self, step_length, sfm_config, obstacles):
+    def __init__(self, step_length, sfm_config, dynamic=False):
         super().__init__(step_length, sfm_config)
-        obstacle_locs, obstacle_borders = zip(*obstacles)
-        self.obstacle_locs = np.array(obstacle_locs)
-        self.obstacle_borders = np.array(obstacle_borders)
+        self.obstacle_locs = None
+        self.obstacle_borders = None
+        self.obstacle_velocities = None
 
         # set model parameters
-        self.ped_force_config = self.sfm_config['obstacle_evasion_force']
-        self.lambda_weight = self.ped_force_config.get('lambda', 2.0)
-        self.A = self.ped_force_config.get('A', 4.5)
-        self.gamma = self.ped_force_config.get('gamma', 0.35)
-        self.n = self.ped_force_config.get('n', 2.0)
-        self.n_prime = self.ped_force_config.get('n_prime', 3.0)
-        self.epsilon = self.ped_force_config.get('epsilon', 0.005)
-        self.perception_threshold = self.ped_force_config.get('perception_threshold', 20)
+        if dynamic:
+            self.evasion_force_config = self.sfm_config['dynamic_obstacle_force']
+        else:
+            self.evasion_force_config = self.sfm_config['static_obstacle_force']
+        self.lambda_weight = self.evasion_force_config.get('lambda', 2.0)
+        self.A = self.evasion_force_config.get('A', 4.5)
+        self.gamma = self.evasion_force_config.get('gamma', 0.35)
+        self.n = self.evasion_force_config.get('n', 2.0)
+        self.n_prime = self.evasion_force_config.get('n_prime', 3.0)
+        self.epsilon = self.evasion_force_config.get('epsilon', 0.005)
+        self.perception_threshold = self.evasion_force_config.get('perception_threshold', 20)
 
     def _get_force(self, peds):
-        if self.obstacle_locs.size == 0:
+        if self.obstacle_locs is None or self.obstacle_locs.size == 0:
             return np.zeros((peds.size(), 3))
+
+        if self.obstacle_velocities is None:
+            self.obstacle_velocities = np.zeros((len(self.obstacle_locs), 2))
+
 
         forces = []
 
@@ -266,13 +273,14 @@ class ObstacleEvasionForce(Force):
             # filter out obstacles that are outside the defined perception threshold
             distances = np.linalg.norm(loc - self.obstacle_locs, axis=-1)
             close_borders = np.array(self.obstacle_borders)[distances < self.perception_threshold]
+            close_obstacle_vel = np.array(self.obstacle_velocities)[distances < self.perception_threshold]
 
             # get the closest border point of each obstacle
             closest_i = [np.argmin(np.linalg.norm(loc - border, axis=-1)) for border in close_borders]
             closest_points = [border[i] for border, i in zip(close_borders, closest_i)]
 
             diff_direction, diff_length = stateutils.normalize(loc - closest_points)
-            vel_diff = -1.0 * (vel - np.zeros((len(closest_points), 2)))
+            vel_diff = -1.0 * (vel - close_obstacle_vel)
 
             # subtract the radii of the pedestrians from the distances
             if self.use_ped_radius:
@@ -319,3 +327,11 @@ class ObstacleEvasionForce(Force):
         force = np.column_stack((force, z_values))
 
         return force
+
+    def update_obstacles(self, obstacles):
+        obstacle_locs, obstacle_borders = zip(*obstacles)
+        self.obstacle_locs = np.array(obstacle_locs)
+        self.obstacle_borders = np.array(obstacle_borders)
+
+    def update_obstacle_velocities(self, velocities):
+        self.obstacle_velocities = np.array(velocities)

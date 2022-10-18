@@ -1,0 +1,40 @@
+[map]
+map_name = 'Town01_Opt'
+map_path = 'Carla/Maps/'
+draw_obstacles = true
+sumo_coordinates = false
+unload_props = false
+spectator_location = [258.9, 190.9, 10.0]
+spectator_rotation = [-90.0, 0.0, 0.0]
+
+[walker]
+pedestrian_seed = 2020
+despawn_on_arrival = true
+waypoint_threshold = 2
+waypoint_distance = 10
+jaywalking_weight = 2
+draw_bounding_boxes = false
+ai_controller = true
+
+[[walker.ped_spawner]]
+spawn_location = [258.9, 190.9, 1.0]
+generate_route = 'JAYWALKING'
+destination = [228.4, 190.9, 0.0]
+speed = 1.0
+quantity = 3
+spawn_interval = 3
+spawn_time = 0.0
+
+[[walker.ped_spawner]]
+spawn_location = [228.4, 190.9, 1.0]
+generate_route = 'JAYWALKING'
+destination = [258.9, 190.9, 0.0]
+speed = 1.0
+quantity = 2
+spawn_interval = 5
+spawn_time = 0.0
+
+[obstacles]
+resolution = 0.1
+ellipse_shape = true
+max_obstacle_z_pos = 0.3

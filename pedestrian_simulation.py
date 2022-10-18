@@ -10,7 +10,9 @@ class PedestrianSimulation:
 
         self.borders = borders
         self.section_info = border_section_info
-        self.obstacles = obstacles
+
+        self.static_obstacles = obstacles
+        self.dynamic_obstacles = []
 
         self.peds = PedState(step_length, sfm_config)
 
@@ -19,23 +21,27 @@ class PedestrianSimulation:
 
     def init_forces(self):
         activated_forces = self.sfm_config['forces']
-        force_list = []
+        force_dict = {}
 
         # initialize social forces according to config
         if activated_forces.get('goal_attractive_force', False):
-            force_list.append(forces.GoalAttractiveForce(self.delta_t, self.sfm_config))
+            force_dict['goal_attractive_force'] = forces.GoalAttractiveForce(self.delta_t, self.sfm_config)
         if activated_forces.get('pedestrian_force', False):
-            force_list.append(forces.PedestrianForce(self.delta_t, self.sfm_config))
+            force_dict['pedestrian_force'] = forces.PedestrianForce(self.delta_t, self.sfm_config)
         if activated_forces.get('border_force', False):
-            force_list.append(forces.BorderForce(self.delta_t, self.sfm_config, self.borders, self.section_info))
-        if activated_forces.get('obstacle_evasion_force', False):
-            force_list.append(forces.ObstacleEvasionForce(self.delta_t, self.sfm_config, self.obstacles))
+            force_dict['border_force'] = forces.BorderForce(self.delta_t, self.sfm_config, self.borders,
+                                                           self.section_info)
+        if activated_forces.get('static_obstacle_force', False):
+            force_dict['static_obstacle_force'] = forces.ObstacleEvasionForce(self.delta_t, self.sfm_config)
+            force_dict['static_obstacle_force'].update_obstacles(self.static_obstacles)
+        if activated_forces.get('dynamic_obstacle_force', False):
+            force_dict['dynamic_obstacle_force'] = forces.ObstacleEvasionForce(self.delta_t, self.sfm_config, True)
         if activated_forces.get('ped_repulsive_force', False):
-            force_list.append(forces.PedRepulsiveForce(self.delta_t, self.sfm_config))
+            force_dict['ped_repulsive_force'] = forces.PedRepulsiveForce(self.delta_t, self.sfm_config)
         if activated_forces.get('space_repulsive_force', False):
-            force_list.append(forces.SpaceRepulsiveForce(self.delta_t, self.sfm_config, self.borders))
+            force_dict['space_repulsive_force'] = forces.SpaceRepulsiveForce(self.delta_t, self.sfm_config, self.borders)
 
-        return force_list
+        return force_dict
 
     def tick(self):
         """Do one step in the simulation"""
@@ -47,7 +53,7 @@ class PedestrianSimulation:
         # record current state for plotting
         self.peds.record_current_state()
 
-        F = sum(map(lambda x: x.get_force(self.peds), self.forces))
+        F = sum(map(lambda x: x.get_force(self.peds), self.forces.values()))
 
         self.peds.calculate_new_velocities(F)
 
@@ -73,6 +79,13 @@ class PedestrianSimulation:
 
     def update_ped_info(self, walker_id, location, velocity):
         self.peds.update_state(walker_id, location, velocity)
+
+    def update_dynamic_obstacles(self, dynamic_obstacles, obstacle_velocities):
+        self.dynamic_obstacles = dynamic_obstacles
+
+        if 'dynamic_obstacle_force' in self.forces:
+            self.forces['dynamic_obstacle_force'].update_obstacles(self.dynamic_obstacles)
+            self.forces['dynamic_obstacle_force'].update_obstacle_velocities(obstacle_velocities)
 
     def get_new_velocities(self):
         return self.peds.get_new_velocities()
