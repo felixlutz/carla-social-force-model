@@ -93,5 +93,11 @@ class PedestrianSimulation:
     def get_borders(self):
         return self.borders
 
+    def get_static_obstacles(self):
+        return self.static_obstacles
+
+    def get_dynamic_obstacles(self):
+        return self.dynamic_obstacles
+
     def get_states(self):
         return self.peds.get_all_states()

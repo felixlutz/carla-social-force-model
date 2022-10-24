@@ -146,13 +146,14 @@ class PedestrianForce(Force):
         left_normal_direction[..., 1] = interaction_direction[..., 0]
 
         # compute angle theta (between interaction and position difference direction)
-        theta = stateutils.angle_diff_2d(interaction_direction, diff_direction)
+        theta = stateutils.angle_diff_2d(diff_direction, interaction_direction)
 
         # compute model parameter B = gamma * ||D||
         B = self.gamma * interaction_length
 
         # apply bias to right-hand side for evasions
-        theta += B * self.epsilon
+        # (negative epsilon due to left-handed Unreal Engine coordinate system?)
+        theta += B * (-self.epsilon)
 
         # deceleration force along interaction direction t_ij
         f_v_value = (-1.0 * self.A
@@ -208,14 +209,17 @@ class BorderForce(Force):
             closest_i = [np.argmin(np.linalg.norm(loc - border, axis=-1)) for border in close_borders]
             closest_points = [border[i] for border, i in zip(close_borders, closest_i)]
 
-            direction, distance = stateutils.normalize(loc - closest_points)
+            if closest_points:
+                direction, distance = stateutils.normalize(loc - closest_points)
 
-            if self.use_ped_radius:
-                distance -= ped['radius']
+                if self.use_ped_radius:
+                    distance -= ped['radius']
 
-            f = direction * self.a * np.exp(-1.0 * np.expand_dims(distance, -1) / self.b)
+                f = direction * self.a * np.exp(-1.0 * np.expand_dims(distance, -1) / self.b)
 
-            forces.append(np.sum(f, axis=0))
+                forces.append(np.sum(f, axis=0))
+            else:
+                forces.append(np.zeros(2))
 
         force = np.array(forces)
 
@@ -263,7 +267,6 @@ class ObstacleEvasionForce(Force):
         if self.obstacle_velocities is None:
             self.obstacle_velocities = np.zeros((len(self.obstacle_locs), 2))
 
-
         forces = []
 
         for ped in peds.state:
@@ -279,46 +282,51 @@ class ObstacleEvasionForce(Force):
             closest_i = [np.argmin(np.linalg.norm(loc - border, axis=-1)) for border in close_borders]
             closest_points = [border[i] for border, i in zip(close_borders, closest_i)]
 
-            diff_direction, diff_length = stateutils.normalize(loc - closest_points)
-            vel_diff = -1.0 * (vel - close_obstacle_vel)
+            if closest_points:
 
-            # subtract the radii of the pedestrians from the distances
-            if self.use_ped_radius:
-                diff_length -= ped['radius']
+                diff_direction, diff_length = stateutils.normalize(closest_points - loc)
+                vel_diff = (vel - close_obstacle_vel)
 
-            # compute interaction direction t_ij
-            interaction_vec = self.lambda_weight * vel_diff + diff_direction
-            interaction_direction, interaction_length = stateutils.normalize(interaction_vec)
+                # subtract the radii of the pedestrians from the distances
+                if self.use_ped_radius:
+                    diff_length -= ped['radius']
 
-            # compute n_ij (normal vector of t_ij orientated to the left)
-            left_normal_direction = np.zeros(np.shape(interaction_direction))
-            left_normal_direction[..., 0] = interaction_direction[..., 1] * -1
-            left_normal_direction[..., 1] = interaction_direction[..., 0]
+                # compute interaction direction t_ij
+                interaction_vec = self.lambda_weight * vel_diff + diff_direction
+                interaction_direction, interaction_length = stateutils.normalize(interaction_vec)
 
-            # compute angle theta (between interaction and position difference direction)
-            theta = stateutils.angle_diff_2d(interaction_direction, diff_direction)
+                # compute n_ij (normal vector of t_ij orientated to the left)
+                left_normal_direction = np.zeros(np.shape(interaction_direction))
+                left_normal_direction[..., 0] = interaction_direction[..., 1] * -1
+                left_normal_direction[..., 1] = interaction_direction[..., 0]
 
-            # compute model parameter B = gamma * ||D||
-            B = self.gamma * interaction_length
+                # compute angle theta (between interaction and position difference direction)
+                theta = stateutils.angle_diff_2d(diff_direction, interaction_direction)
 
-            # apply bias to right-hand side for evasions
-            theta += B * self.epsilon
+                # compute model parameter B = gamma * ||D||
+                B = self.gamma * interaction_length
 
-            # deceleration force along interaction direction t_ij
-            f_v_value = (-1.0 * self.A
-                         * np.exp(-1.0 * diff_length / B - np.square(self.n_prime * B * theta)))
+                # apply bias to right-hand side for evasions
+                theta += B * (-self.epsilon)
 
-            # force describing the directional change along n_ij (normal vector of t_ij orientated to the left)
-            f_theta_value = (-1.0 * self.A * np.sign(theta)
-                             * np.exp(-1.0 * diff_length / B - np.square(self.n * B * theta)))
+                # deceleration force along interaction direction t_ij
+                f_v_value = (-1.0 * self.A
+                             * np.exp(-1.0 * diff_length / B - np.square(self.n_prime * B * theta)))
 
-            # build force vectors from force value and direction
-            f_v = np.expand_dims(f_v_value, -1) * interaction_direction
-            f_theta = np.expand_dims(f_theta_value, -1) * left_normal_direction
+                # force describing the directional change along n_ij (normal vector of t_ij orientated to the left)
+                f_theta_value = (-1.0 * self.A * np.sign(theta)
+                                 * np.exp(-1.0 * diff_length / B - np.square(self.n * B * theta)))
 
-            f = f_v + f_theta
+                # build force vectors from force value and direction
+                f_v = np.expand_dims(f_v_value, -1) * interaction_direction
+                f_theta = np.expand_dims(f_theta_value, -1) * left_normal_direction
 
-            forces.append(np.sum(f, axis=0))
+                f = f_v + f_theta
+
+                forces.append(np.sum(f, axis=0))
+
+            else:
+                forces.append(np.zeros(2))
 
         force = np.array(forces)
 

@@ -8,6 +8,8 @@ import time
 import carla
 import numpy as np
 
+from stateutils import convert_coordinates
+
 
 def extract_sidewalk(carla_map, scenario_config):
     """
@@ -313,10 +315,46 @@ def get_dynamic_obstacles(carla_world, scenario_config):
         velocity = np.array([carla_velocity.x, carla_velocity.y])
         obstacle_velocity.append(velocity)
 
-        border_points = generate_ellipse_border(transform, bb.extent.x, bb.extent.y, resolution, 2)
+        border_points = generate_ellipse_border(transform, bb.extent.x, bb.extent.y, resolution)
         carla_obstacle_borders.append(border_points)
         obstacle_positions.append(center)
 
     numpy_obstacle_borders = [np.array([[vec.x, vec.y] for vec in border]) for border in carla_obstacle_borders]
 
     return obstacle_positions, obstacle_velocity, numpy_obstacle_borders, carla_obstacle_borders
+
+
+def extract_borders_from_config(scenario_config):
+    """Extract manually defined (straight) obstacle borders from scenario configuration"""
+
+    sumo_coordinates = scenario_config['map']['sumo_coordinates']
+    sumo_offset = scenario_config.get('map').get('sumo_offset')
+    obstacle_config = scenario_config.get('obstacles')
+
+    obstacles = []
+    carla_obstacles = []
+    section_info = []
+    if obstacle_config is not None:
+        borders = obstacle_config.get('borders', [])
+        obstacle_resolution = obstacle_config.get('resolution', 0.1)
+
+        for border in borders:
+            start_point = np.array(border['start_point'])
+            end_point = np.array(border['end_point'])
+
+            if sumo_coordinates:
+                start_point = convert_coordinates(start_point, sumo_offset)
+                end_point = convert_coordinates(end_point, sumo_offset)
+
+            samples = int(np.linalg.norm(end_point - start_point) / obstacle_resolution)
+
+            border_line = np.column_stack((np.linspace(start_point[0], end_point[0], samples),
+                                           np.linspace(start_point[1], end_point[1], samples)))
+            middle_loc = border_line[len(border_line) // 2]
+            section_length = len(border_line) * obstacle_resolution
+
+            section_info.append([middle_loc, section_length])
+            obstacles.append(border_line)
+            carla_obstacles.append([carla.Vector3D(p[0], p[1], 0) for p in border_line])
+
+    return obstacles, section_info, carla_obstacles

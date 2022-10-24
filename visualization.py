@@ -128,10 +128,23 @@ class SceneVisualizer:
 
     def plot_borders(self):
         borders = self.scene.get_borders()
+        obstacles = []
+        # obstacles.extend(self.scene.get_static_obstacles())
+        obstacles.extend(self.scene.get_dynamic_obstacles())
+
+        obstacle_locs, obstacle_borders = zip(*obstacles)
 
         if borders is not None:
-            for o in borders:
-                self.ax.plot(o[:, 0], o[:, 1], lw=2, color='black')
+            for b in borders:
+                self.ax.plot(b[:, 0], b[:, 1], lw=2, color='black')
+
+        if obstacle_borders is not None:
+            for ob in obstacle_borders:
+                self.ax.plot(ob[:, 0], ob[:, 1], lw=2, color='black')
+
+        if obstacle_locs is not None:
+            for ol in obstacle_locs:
+                self.ax.plot(ol[0], ol[1], lw=2, color='red')
 
     def animation_init(self):
         self.plot_borders()

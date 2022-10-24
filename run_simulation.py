@@ -8,10 +8,10 @@ import tomli
 
 import visualization
 from carla_simulation import CarlaSimulation
+from obstacles import extract_sidewalk, extract_obstacles, get_dynamic_obstacles, extract_borders_from_config
 from pedestrian_simulation import PedestrianSimulation
 from pedestrian_spawner import PedSpawnManager
-from obstacles import extract_sidewalk, extract_obstacles, get_dynamic_obstacles
-from stateutils import convert_coordinates
+from vehicle_spawner import VehicleSpawnManager
 
 
 class SimulationRunner:
@@ -20,11 +20,13 @@ class SimulationRunner:
     simulations.
     """
 
-    def __init__(self, pedestrian_simulation, carla_simulation, ped_spawn_manager, scenario_config, args):
+    def __init__(self, pedestrian_simulation, carla_simulation, ped_spawn_manager, vehicle_spawn_manager,
+                 scenario_config, args):
 
         self.ped_sim = pedestrian_simulation
         self.carla_sim = carla_simulation
         self.ped_spawn_manager = ped_spawn_manager
+        self.vehicle_spawn_manager = vehicle_spawn_manager
         self.scenario_config = scenario_config
 
         self.plot = args.plot
@@ -39,14 +41,16 @@ class SimulationRunner:
 
         self.walker_dict = ped_spawn_manager.walker_dict
         self.waypoint_dict = ped_spawn_manager.waypoint_dict
+        self.vehicle_list = vehicle_spawn_manager.vehicle_list
 
     def tick(self):
         """
         Tick to simulation synchronization. One tick = one simulation step.
         """
-        # spawn pedestrians that are supposed to spawn in this time step
+        # spawn pedestrians and vehicles that are supposed to spawn in this time step
         sim_time = self.carla_sim.get_sim_time()
         self.ped_spawn_manager.tick(sim_time)
+        self.vehicle_spawn_manager.tick(sim_time)
 
         # get all pedestrians that arrived at their next waypoint and either assign a new waypoint or despawn
         # them if they reached their final destination
@@ -66,8 +70,8 @@ class SimulationRunner:
                 self.waypoint_dict.pop(ped_name)
                 logging.info(f'Despawned pedestrian {ped_name}.')
 
-        # Tick CARLA simulation and receive new location and velocity of every pedestrian and propagate
-        # it to the pedestrian simulation
+        # Tick CARLA simulation and receive new location and velocity of all pedestrians and dynamic obstacles
+        # (vehicles) and propagate the information to the pedestrian simulation
         self.carla_sim.tick()
         for actor_id in self.walker_dict.values():
             walker = self.carla_sim.get_actor(actor_id)
@@ -111,8 +115,12 @@ class SimulationRunner:
         """
         Cleans synchronization.
         """
-        # Destroying synchronized actors.
+        # Destroying walkers.
         for carla_actor_id in self.walker_dict.values():
+            self.carla_sim.destroy_actor(carla_actor_id)
+
+        # Destroying vehicles.
+        for carla_actor_id in self.vehicle_list:
             self.carla_sim.destroy_actor(carla_actor_id)
 
         # Closing pedestrian simulation and CARLA client.
@@ -168,11 +176,13 @@ def simulation_loop(args):
     # initialize pedestrian simulation
     pedestrian_simulation = PedestrianSimulation(borders, section_info, obstacles, sfm_config, args.step_length)
 
-    # initialize pedestrian spawn manager
+    # initialize pedestrian and vehicle spawn manager
     ped_spawn_manager = PedSpawnManager(scenario_config, carla_simulation, pedestrian_simulation)
+    vehicle_spawn_manager = VehicleSpawnManager(scenario_config, carla_simulation)
 
     # initialize simulation runner
-    sim_runner = SimulationRunner(pedestrian_simulation, carla_simulation, ped_spawn_manager, scenario_config, args)
+    sim_runner = SimulationRunner(pedestrian_simulation, carla_simulation, ped_spawn_manager, vehicle_spawn_manager,
+                                  scenario_config, args)
 
     # main simulation loop
     try:
@@ -207,40 +217,6 @@ def load_config(config_path):
     return config
 
 
-def extract_borders_from_config(scenario_config):
-    sumo_coordinates = scenario_config['map']['sumo_coordinates']
-    sumo_offset = scenario_config.get('map').get('sumo_offset')
-    obstacle_config = scenario_config.get('obstacles')
-
-    obstacles = []
-    carla_obstacles = []
-    section_info = []
-    if obstacle_config is not None:
-        borders = obstacle_config.get('borders', [])
-        obstacle_resolution = obstacle_config.get('resolution', 0.1)
-
-        for border in borders:
-            start_point = np.array(border['start_point'])
-            end_point = np.array(border['end_point'])
-
-            if sumo_coordinates:
-                start_point = convert_coordinates(start_point, sumo_offset)
-                end_point = convert_coordinates(end_point, sumo_offset)
-
-            samples = int(np.linalg.norm(end_point - start_point) / obstacle_resolution)
-
-            border_line = np.column_stack((np.linspace(start_point[0], end_point[0], samples),
-                                           np.linspace(start_point[1], end_point[1], samples)))
-            middle_loc = border_line[len(border_line) // 2]
-            section_length = len(border_line) * obstacle_resolution
-
-            section_info.append([middle_loc, section_length])
-            obstacles.append(border_line)
-            carla_obstacles.append([carla.Vector3D(p[0], p[1], 0) for p in border_line])
-
-    return obstacles, section_info, carla_obstacles
-
-
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument('--scenario-config',
@@ -261,9 +237,9 @@ if __name__ == '__main__':
                            type=int,
                            help='TCP port to listen to (default: 2000)')
     argparser.add_argument('--step-length',
-                           default=0.1,
+                           default=0.05,
                            type=float,
-                           help='set fixed delta seconds (default: 0.1s)')
+                           help='set fixed delta seconds (default: 0.05s)')
     argparser.add_argument('--plot', action='store_true', help='plot pedestrian trajectories')
     argparser.add_argument('--animate', action='store_true', help='animate pedestrian trajectories')
     argparser.add_argument('--output',

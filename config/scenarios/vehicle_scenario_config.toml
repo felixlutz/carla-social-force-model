@@ -1,7 +1,7 @@
 [map]
 map_name = 'Town10HD_Opt'
 map_path = 'Carla/Maps/'
-draw_obstacles = true
+draw_obstacles = false
 sumo_coordinates = false
 unload_props = false
 spectator_location = [-120.3, -17.0, 10.0]
@@ -17,12 +17,142 @@ draw_bounding_boxes = false
 ai_controller = true
 
 [[walker.ped_spawner]]
-spawn_location = [-122.5, -17.0, 1.0]
+spawn_location = [-122.5, -12.0, 1.0]
 generate_route = 'JAYWALKING'
 destination = [-93.1, -17.0, 0.0]
-speed = 1.0
-quantity = 10
+speed = 1.5
+quantity = 3
 spawn_time = 0.0
+spawn_interval = 2.8
+
+[[walker.ped_spawner]]
+spawn_location = [-122.0, -13.0, 1.0]
+generate_route = 'JAYWALKING'
+destination = [-93.1, -17.0, 0.0]
+speed = 1.5
+quantity = 3
+spawn_time = 0.0
+spawn_interval = 2.1
+
+[[walker.ped_spawner]]
+spawn_location = [-122.0, -14.0, 1.0]
+generate_route = 'JAYWALKING'
+destination = [-93.1, -17.0, 0.0]
+speed = 1.5
+quantity = 3
+spawn_time = 0.0
+spawn_interval = 2.5
+
+[[walker.ped_spawner]]
+spawn_location = [-93.1, -17.0, 1.0]
+generate_route = 'JAYWALKING'
+destination = [-122.5, -17.0, 1.0]
+speed = 1.5
+quantity = 3
+spawn_time = 0.0
+spawn_interval = 2.8
+
+[[walker.ped_spawner]]
+spawn_location = [-93.5, -18.0, 1.0]
+generate_route = 'JAYWALKING'
+destination = [-122.0, -18.0, 1.0]
+speed = 1.5
+quantity = 3
+spawn_time = 0.0
+spawn_interval = 2.1
+
+[[walker.ped_spawner]]
+spawn_location = [-93.1, -19.0, 1.0]
+generate_route = 'JAYWALKING'
+destination = [-122.0, -19.0, 1.0]
+speed = 1.5
+quantity = 3
+spawn_time = 0.0
+spawn_interval = 2.5
+
+[vehicle]
+vehicle_seed = 100
+variate_speed_factor = 3
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 100
+speed_reduction_factor = 80
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 120
+speed_reduction_factor = 80
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 13
+speed_reduction_factor = 80
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 14
+speed_reduction_factor = 80
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 4
+speed_reduction_factor = 80
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 5
+speed_reduction_factor = 80
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 11
+speed_reduction_factor = 80
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 12
+speed_reduction_factor = 80
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
 
 [obstacles]
 resolution = 0.1

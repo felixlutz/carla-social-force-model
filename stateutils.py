@@ -28,7 +28,7 @@ def all_diffs(array, remove_diagonal=True, keep_dims=True) -> np.ndarray:
     :param keep_dims: bool determining if the dimensions of the diff matrix are kept after removing the diagonal
     :return: diff matrix
     """
-    diff_matrix = np.expand_dims(array, 1) - np.expand_dims(array, 0)
+    diff_matrix = np.expand_dims(array, 0) - np.expand_dims(array, 1)
 
     if remove_diagonal:
         diff_matrix = diff_matrix[~np.eye(diff_matrix.shape[0], dtype=bool), :]

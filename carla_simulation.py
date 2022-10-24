@@ -73,16 +73,21 @@ class CarlaSimulation:
     def spawn_actor(self, blueprint, transform):
         """
         Spawns a new actor.
-
-            :param blueprint: blueprint of the actor to be spawned.
-            :param transform: transform where the actor will be spawned.
-            :return: actor id if the actor is successfully spawned. Otherwise, INVALID_ACTOR_ID.
+        :param blueprint: blueprint of the actor to be spawned.
+        :param transform: transform where the actor will be spawned.
+        :return: actor id if the actor is successfully spawned. Otherwise, INVALID_ACTOR_ID.
         """
         transform = carla.Transform(transform.location, transform.rotation)
+        batch = [carla.command.SpawnActor(blueprint, transform)]
 
-        batch = [
-            carla.command.SpawnActor(blueprint, transform)
-        ]
+        return self.spawn_actor_with_batch(batch)
+
+    def spawn_actor_with_batch(self, batch):
+        """
+        Spawns a new actor with batch command.
+        :param batch: batch of carla commands
+        :return: actor id if the actor is successfully spawned. Otherwise, INVALID_ACTOR_ID.
+        """
         response = self.client.apply_batch_sync(batch, False)[0]
         if response.error:
             logging.error('Spawn carla actor failed. %s', response.error)
