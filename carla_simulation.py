@@ -1,4 +1,5 @@
 import logging
+import math
 
 import carla
 
@@ -42,6 +43,9 @@ class CarlaSimulation:
         settings.synchronous_mode = True
         settings.deterministic_ragdolls = True
         settings.fixed_delta_seconds = self.step_length
+        settings.substepping = True
+        settings.max_substep_delta_time = args.sub_step_length
+        settings.max_substeps = math.ceil(self.step_length / args.sub_step_length)
         self.world.apply_settings(settings)
 
         # set spectator

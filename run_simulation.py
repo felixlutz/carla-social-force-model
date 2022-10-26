@@ -240,6 +240,10 @@ if __name__ == '__main__':
                            default=0.05,
                            type=float,
                            help='set fixed delta seconds (default: 0.05s)')
+    argparser.add_argument('--sub-step-length',
+                           default=0.005,
+                           type=float,
+                           help='set carla physics sub step length (default: 0.005s)')
     argparser.add_argument('--plot', action='store_true', help='plot pedestrian trajectories')
     argparser.add_argument('--animate', action='store_true', help='animate pedestrian trajectories')
     argparser.add_argument('--output',

@@ -1,0 +1,191 @@
+[map]
+map_name = 'Town10HD_Opt'
+map_path = 'Carla/Maps/'
+draw_obstacles = true
+sumo_coordinates = false
+unload_props = false
+spectator_location = [-61.0, -17.0, 10.0]
+spectator_rotation = [-50.0, 0.0, 0.0]
+
+[walker]
+pedestrian_seed = 2020
+despawn_on_arrival = true
+waypoint_threshold = 2
+waypoint_distance = 5
+jaywalking_weight = 1
+draw_bounding_boxes = false
+ai_controller = true
+
+[[walker.ped_spawner]]
+spawn_location = [-33.5, -23.0, 1.0]
+generate_route = 'JAYWALKING'
+destination = [-61.0, -23.0, 0.0]
+speed = 1.5
+quantity = 3
+spawn_time = 0.0
+spawn_interval = 3.1
+
+[[walker.ped_spawner]]
+spawn_location = [-33.0, -22.0, 1.0]
+generate_route = 'JAYWALKING'
+destination = [-61.0, -22.0, 0.0]
+speed = 1.5
+quantity = 3
+spawn_time = 2.0
+spawn_interval = 4.5
+
+[[walker.ped_spawner]]
+spawn_location = [-33.5, -21.0, 1.0]
+generate_route = 'JAYWALKING'
+destination = [-61.0, -21.0, 0.0]
+speed = 1.5
+quantity = 3
+spawn_time = 1.0
+spawn_interval = 5.8
+
+[[walker.ped_spawner]]
+spawn_location = [-61.0, -22.0, 1.0]
+generate_route = 'JAYWALKING'
+destination = [-33.5, -22.0, 1.0]
+speed = 1.5
+quantity = 3
+spawn_time = 2.0
+spawn_interval = 3.1
+
+[[walker.ped_spawner]]
+spawn_location = [-61.5, -23.0, 1.0]
+generate_route = 'JAYWALKING'
+destination = [-33.5, -23.0, 1.0]
+speed = 1.5
+quantity = 3
+spawn_time = 0.0
+spawn_interval = 4.5
+
+[[walker.ped_spawner]]
+spawn_location = [-61.0, -21.0, 1.0]
+generate_route = 'JAYWALKING'
+destination = [-33.5, -21.0, 1.0]
+speed = 1.5
+quantity = 3
+spawn_time = 1.0
+spawn_interval = 4.8
+
+[vehicle]
+vehicle_seed = 20
+variate_speed_factor = 3
+no_bikes = false
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 89
+speed_reduction_factor = 85
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 135
+speed_reduction_factor = 85
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 126
+speed_reduction_factor = 85
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 130
+speed_reduction_factor = 85
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 138
+speed_reduction_factor = 85
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 110
+speed_reduction_factor = 85
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 111
+speed_reduction_factor = 85
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 115
+speed_reduction_factor = 85
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 103
+speed_reduction_factor = 85
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 104
+speed_reduction_factor = 85
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 95
+speed_reduction_factor = 85
+auto_pilot = true
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[obstacles]
+resolution = 0.1
+ellipse_shape = true
+max_obstacle_z_pos = 0.3

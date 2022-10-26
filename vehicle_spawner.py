@@ -16,12 +16,16 @@ class VehicleSpawnManager:
         self.vehicle_seed = scenario_config.get('vehicle', {}).get('vehicle_seed', 2000)
         self.variate_speed_factor = scenario_config.get('vehicle', {}).get('variate_speed_factor', 0.0)
         self.recommended_spawn_points = carla_sim.world.get_map().get_spawn_points()
+        no_bikes = scenario_config.get('vehicle', {}).get('no_bikes', False)
 
         # get vehicle spawners from scenario config
         self.vehicle_spawners = self._extract_vehicle_info()
 
         blueprint_library = carla_sim.world.get_blueprint_library().filter('vehicle')
-        self.vehicle_blueprints = [x for x in blueprint_library if int(x.get_attribute('number_of_wheels')) == 4]
+        if no_bikes:
+            self.vehicle_blueprints = [x for x in blueprint_library if int(x.get_attribute('number_of_wheels')) == 4]
+        else:
+            self.vehicle_blueprints = blueprint_library
 
         self.SpawnActor = carla.command.SpawnActor
         self.SetAutopilot = carla.command.SetAutopilot
@@ -29,6 +33,7 @@ class VehicleSpawnManager:
 
         self.traffic_manager = carla_sim.client.get_trafficmanager(8000)
         self.traffic_manager.set_synchronous_mode(True)
+        self.traffic_manager.set_random_device_seed(self.vehicle_seed)
 
         self.vehicle_list = []
 
