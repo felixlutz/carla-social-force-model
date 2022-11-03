@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 import stateutils
+from ped_mode_state_machine import PedMode
 from potentials import PedPedPotential, PedSpacePotential
 from fieldofview import FieldOfView
 
@@ -102,7 +103,7 @@ class SpaceRepulsiveForce(Force):
             F_aB = np.dstack((F_aB, z_values))
 
             # deactivate obstacle force for pedestrians that are crossing the road
-            crossing_road = peds.crossing_road()
+            crossing_road = [m.current_mode in [PedMode.CROSSING_ROAD, PedMode.ROAD_TO_SIDEWALK] for m in peds.mode()]
             F_aB[crossing_road] *= 0
 
         return np.sum(F_aB, axis=1)
@@ -228,7 +229,7 @@ class BorderForce(Force):
         force = np.column_stack((force, z_values))
 
         # deactivate border force for pedestrians that are crossing the road
-        crossing_road = peds.crossing_road()
+        crossing_road = [m.current_mode in [PedMode.CROSSING_ROAD, PedMode.ROAD_TO_SIDEWALK] for m in peds.mode()]
         force[crossing_road] *= 0
 
         return force

@@ -97,7 +97,7 @@ class SimulationRunner:
                     self.carla_sim.draw_points(border, self.step_length)
 
         # Tick pedestrian simulation and propagate new velocities resulting from social force model to CARLA
-        self.ped_sim.tick()
+        self.ped_sim.tick(sim_time)
         new_velocities = self.ped_sim.get_new_velocities()
         if new_velocities is not None:
             for velocity in new_velocities:

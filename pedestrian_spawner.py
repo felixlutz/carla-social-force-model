@@ -6,6 +6,7 @@ import numpy as np
 
 import stateutils
 from path_planner import PedPathPlanner, GraphType
+from ped_mode_state_machine import PedMode, PedModeStateMachine
 
 
 class PedSpawnManager:
@@ -171,7 +172,11 @@ class PedSpawner:
         self.quantity = quantity
         self.spawn_interval = spawn_interval
         self.next_spawn_time = spawn_time
-        self.crossing_road = crossing_road_bools[0]
+
+        if crossing_road_bools[0]:
+            self.initial_mode = PedMode.CROSSING_ROAD
+        else:
+            self.initial_mode = PedMode.WALKING_SIDEWALK
 
         if waypoints.ndim > 1:
             self.first_waypoint = waypoints[0]
@@ -204,7 +209,8 @@ class PedSpawner:
         :param radius:
         :return: initial pedestrian state and remaining waypoints
         """
-        ped_state = (name, carla_id, self.spawn_location, self.velocity, self.first_waypoint, self.crossing_road,
+        ped_mode = PedModeStateMachine(name, self.target_speed, self.initial_mode)
+        ped_state = (name, carla_id, self.spawn_location, self.velocity, self.first_waypoint, ped_mode,
                      radius, self.target_speed)
 
         return ped_state, self.remaining_waypoint_tuples

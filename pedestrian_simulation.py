@@ -30,7 +30,7 @@ class PedestrianSimulation:
             force_dict['pedestrian_force'] = forces.PedestrianForce(self.delta_t, self.sfm_config)
         if activated_forces.get('border_force', False):
             force_dict['border_force'] = forces.BorderForce(self.delta_t, self.sfm_config, self.borders,
-                                                           self.section_info)
+                                                            self.section_info)
         if activated_forces.get('static_obstacle_force', False):
             force_dict['static_obstacle_force'] = forces.ObstacleEvasionForce(self.delta_t, self.sfm_config)
             force_dict['static_obstacle_force'].update_obstacles(self.static_obstacles)
@@ -39,16 +39,20 @@ class PedestrianSimulation:
         if activated_forces.get('ped_repulsive_force', False):
             force_dict['ped_repulsive_force'] = forces.PedRepulsiveForce(self.delta_t, self.sfm_config)
         if activated_forces.get('space_repulsive_force', False):
-            force_dict['space_repulsive_force'] = forces.SpaceRepulsiveForce(self.delta_t, self.sfm_config, self.borders)
+            force_dict['space_repulsive_force'] = forces.SpaceRepulsiveForce(self.delta_t, self.sfm_config,
+                                                                             self.borders)
 
         return force_dict
 
-    def tick(self):
+    def tick(self, sim_time):
         """Do one step in the simulation"""
-
         # skip social force calculations if pedestrian state matrix is empty or None
         if self.peds.state is None or self.peds.size() == 0:
             return
+
+        self.peds.apply_current_mode()
+        for mode in self.peds.state['mode']:
+            mode.tick(sim_time)
 
         # record current state for plotting
         self.peds.record_current_state()

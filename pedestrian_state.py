@@ -1,6 +1,7 @@
 import numpy as np
 
 import stateutils
+from ped_mode_state_machine import PedMode
 
 
 class PedState:
@@ -15,7 +16,7 @@ class PedState:
         self.max_speed_factor = sfm_config.get('max_speed_factor', 1.3)
 
         self.ped_state_dtype = [('name', 'U8'), ('id', 'i4'), ('loc', 'f8', (3,)), ('vel', 'f8', (3,)),
-                                ('next_waypoint', 'f8', (3,)), ('crossing_road', '?'), ('radius', 'f8'),
+                                ('next_waypoint', 'f8', (3,)), ('mode', 'O'), ('radius', 'f8'),
                                 ('target_speed', 'f8')]
 
         self.state = None
@@ -61,8 +62,8 @@ class PedState:
     def next_waypoint(self) -> np.ndarray:
         return self.state['next_waypoint']
 
-    def crossing_road(self) -> np.ndarray:
-        return self.state['crossing_road']
+    def mode(self) -> np.ndarray:
+        return self.state['mode']
 
     def radius(self) -> np.ndarray:
         return self.state['radius']
@@ -93,9 +94,19 @@ class PedState:
         self.state['loc'][self.state['id'] == walker_id] = location
         self.state['vel'][self.state['id'] == walker_id] = velocity
 
-    def update_next_waypoint(self, ped_name, next_waypoint):
-        self.state['next_waypoint'][self.state['name'] == ped_name] = next_waypoint[0]
-        self.state['crossing_road'][self.state['name'] == ped_name] = next_waypoint[1]
+    def update_next_waypoint(self, ped_name, next_waypoint_tuple):
+        next_waypoint, crossing_road = next_waypoint_tuple
+        self.state['next_waypoint'][self.state['name'] == ped_name] = next_waypoint
+
+        if crossing_road:
+            ped_mode = PedMode.CROSSING_ROAD
+        else:
+            ped_mode = PedMode.WALKING_SIDEWALK
+
+        self.state['mode'][self.state['name'] == ped_name][0].set_mode(ped_mode)
+
+    def apply_current_mode(self):
+        self.state['target_speed'] = [mode.target_speed for mode in self.state['mode']]
 
     def desired_directions(self) -> np.ndarray:
         return stateutils.desired_directions(self.state)
