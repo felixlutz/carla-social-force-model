@@ -90,6 +90,8 @@ class PedSpawnManager:
                 quantity = spawn_point.get('quantity', 1)
                 spawn_time = spawn_point.get('spawn_time', 0.0)
                 spawn_interval = spawn_point.get('spawn_interval', 1.0)
+                crossing_speed_factor = spawn_point.get('crossing_speed_factor', 1.5)
+                crossing_safety_margin = spawn_point.get('crossing_safety_margin', 1.5)
 
                 # convert coordinates if they are from SUMO simulator
                 if sumo_coordinates and sumo_offset is not None:
@@ -100,7 +102,7 @@ class PedSpawnManager:
                         waypoints = stateutils.convert_coordinates(waypoints, sumo_offset)
 
                 ped_spawner = PedSpawner(spawn_location, waypoints, crossing_road_bools, speed, quantity, spawn_time,
-                                         spawn_interval)
+                                         spawn_interval, crossing_speed_factor, crossing_safety_margin)
                 ped_spawners.append(ped_spawner)
 
         return ped_spawners
@@ -166,12 +168,15 @@ class PedSpawner:
     Class containing all the information necessary to spawn one or multiple pedestrians from one spawn point.
     """
 
-    def __init__(self, spawn_location, waypoints, crossing_road_bools, speed, quantity, spawn_time, spawn_interval):
+    def __init__(self, spawn_location, waypoints, crossing_road_bools, speed, quantity, spawn_time, spawn_interval,
+                 crossing_speed_factor, crossing_safety_margin):
         self.spawn_location = spawn_location
         self.target_speed = speed
         self.quantity = quantity
         self.spawn_interval = spawn_interval
         self.next_spawn_time = spawn_time
+        self.crossing_speed_factor = crossing_speed_factor
+        self.crossing_safety_margin = crossing_safety_margin
 
         if crossing_road_bools[0]:
             self.initial_mode = PedMode.CROSSING_ROAD
@@ -209,7 +214,8 @@ class PedSpawner:
         :param radius:
         :return: initial pedestrian state and remaining waypoints
         """
-        ped_mode = PedModeStateMachine(name, self.target_speed, self.initial_mode)
+        ped_mode = PedModeStateMachine(name, self.target_speed, self.initial_mode, self.crossing_speed_factor,
+                                       self.crossing_safety_margin)
         ped_state = (name, carla_id, self.spawn_location, self.velocity, self.first_waypoint, ped_mode,
                      radius, self.target_speed)
 

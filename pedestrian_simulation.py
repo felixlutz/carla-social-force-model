@@ -1,6 +1,8 @@
 import numpy as np
 
 import forces
+from check_traffic import check_traffic
+from ped_mode_state_machine import PedMode
 from pedestrian_state import PedState
 
 
@@ -13,6 +15,8 @@ class PedestrianSimulation:
 
         self.static_obstacles = obstacles
         self.dynamic_obstacles = []
+        self.dynamic_obstacles_vel = []
+        self.dynamic_obstacles_extent = []
 
         self.peds = PedState(step_length, sfm_config)
 
@@ -54,6 +58,15 @@ class PedestrianSimulation:
         for mode in self.peds.state['mode']:
             mode.tick(sim_time)
 
+        for ped in self.peds.state[[m.current_mode == PedMode.CHECKING_TRAFFIC for m in self.peds.mode()]]:
+            ready_to_cross = True
+            if self.dynamic_obstacles:
+                ready_to_cross = check_traffic(ped, self.dynamic_obstacles, self.dynamic_obstacles_vel,
+                                               self.dynamic_obstacles_extent)
+
+            if ready_to_cross:
+                ped['mode'].set_mode(PedMode.CROSSING_ROAD)
+
         # record current state for plotting
         self.peds.record_current_state()
 
@@ -84,12 +97,13 @@ class PedestrianSimulation:
     def update_ped_info(self, walker_id, location, velocity):
         self.peds.update_state(walker_id, location, velocity)
 
-    def update_dynamic_obstacles(self, dynamic_obstacles, obstacle_velocities):
-        self.dynamic_obstacles = dynamic_obstacles
+    def update_dynamic_obstacles(self, dynamic_obstacles):
+        obstacle_pos, self.dynamic_obstacles_vel, self.dynamic_obstacles_extent, borders = dynamic_obstacles
+        self.dynamic_obstacles = list(zip(obstacle_pos, borders))
 
         if 'dynamic_obstacle_force' in self.forces:
             self.forces['dynamic_obstacle_force'].update_obstacles(self.dynamic_obstacles)
-            self.forces['dynamic_obstacle_force'].update_obstacle_velocities(obstacle_velocities)
+            self.forces['dynamic_obstacle_force'].update_obstacle_velocities(self.dynamic_obstacles_vel)
 
     def get_new_velocities(self):
         return self.peds.get_new_velocities()

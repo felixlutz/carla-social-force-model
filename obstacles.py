@@ -305,7 +305,8 @@ def get_dynamic_obstacles(carla_world, scenario_config):
 
     carla_obstacle_borders = []
     obstacle_positions = []
-    obstacle_velocity = []
+    obstacle_velocities = []
+    obstacle_extents = []
 
     for v in vehicles:
         bb = v.bounding_box
@@ -313,15 +314,16 @@ def get_dynamic_obstacles(carla_world, scenario_config):
         center = np.array([transform.location.x, transform.location.y])
         carla_velocity = v.get_velocity()
         velocity = np.array([carla_velocity.x, carla_velocity.y])
-        obstacle_velocity.append(velocity)
+        obstacle_velocities.append(velocity)
 
         border_points = generate_ellipse_border(transform, bb.extent.x, bb.extent.y, resolution)
         carla_obstacle_borders.append(border_points)
         obstacle_positions.append(center)
+        obstacle_extents.append(np.array([bb.extent.x, bb.extent.y]))
 
     numpy_obstacle_borders = [np.array([[vec.x, vec.y] for vec in border]) for border in carla_obstacle_borders]
 
-    return obstacle_positions, obstacle_velocity, numpy_obstacle_borders, carla_obstacle_borders
+    return (obstacle_positions, obstacle_velocities, obstacle_extents, numpy_obstacle_borders), carla_obstacle_borders
 
 
 def extract_borders_from_config(scenario_config):
