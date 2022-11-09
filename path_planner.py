@@ -12,6 +12,7 @@ class EdgeType(Enum):
     CROSSWALK = 2
     JAYWALKING = 3
     JAYWALKING_JUNCTION = 4
+    SIDEWALK_TO_ROAD = 5
 
 
 class GraphType(Enum):
@@ -74,23 +75,15 @@ class PedPathPlanner:
         if with_origin:
             route.append((origin, False))
 
-        crossing_road_successor = False
-
         # get waypoint locations from graph using the node ids
         for i in range(len(route_node_ids) - 1):
 
             # append boolean to waypoint to indicate if a road is being crossed in order to reach waypoint
-            # (the successor of a waypoint, where crossing_road is set to true, is also set to true to guarantee that
-            # the pedestrian is back on a sidewalk before resetting the crossing_road boolean to false again)
             crossing_road = False
             edge = graph.edges[(route_node_ids[i], route_node_ids[i + 1])]
             edge_type = edge['type']
             if edge_type in [EdgeType.CROSSWALK, EdgeType.JAYWALKING, EdgeType.JAYWALKING_JUNCTION]:
                 crossing_road = True
-                crossing_road_successor = True
-            if not crossing_road and crossing_road_successor:
-                crossing_road = True
-                crossing_road_successor = False
 
             if i == 0:
                 first_waypoint = graph.nodes[route_node_ids[i]]['waypoint']
@@ -442,7 +435,22 @@ class PedPathPlanner:
 
     def _build_graph(self):
         """
-        This function builds a networkx graph representation of ped_topology, creating several class attributes:
+        This function builds a networkx graph representation of ped_topology and generates + adds jaywalking edges:
+        """
+        self.graph = nx.Graph()
+        self.id_map = {}  # dict with structure {(x,y,z): id, ... }
+        self.road_id_to_edge = {}  # dict with structure {road_id: {lane_id: edge, ... }, ... }
+
+        # add ped_topology to networkx graph
+        self._add_topology_edges_to_graph(self.ped_topology)
+
+        # generate jaywalking edges and add to networkx graph
+        jaywalking_edges = self._generate_jaywalking_edges()
+        self._add_topology_edges_to_graph(jaywalking_edges)
+
+    def _add_topology_edges_to_graph(self, edge_dicts):
+        """
+        Adds ped_topology like edge dicts the networkx graph, creating several class attributes:
         - graph (networkx.Graph): networkx graph representing the world map, with:
             Node properties:
                 xyz: (x,y,z) position in world map
@@ -455,11 +463,7 @@ class PedPathPlanner:
         - road_id_to_edge (dictionary): map from road id to edge in the graph
         """
 
-        self.graph = nx.Graph()
-        self.id_map = {}  # dict with structure {(x,y,z): id, ... }
-        self.road_id_to_edge = {}  # dict with structure {road_id: {lane_id: edge, ... }, ... }
-
-        for edge in self.ped_topology:
+        for edge in edge_dicts:
             entry_xyz, exit_xyz = edge['entry_xyz'], edge['exit_xyz']
             entry_wp, exit_wp = edge['entry'], edge['exit']
             length = edge['length']
@@ -496,14 +500,67 @@ class PedPathPlanner:
                 entry_waypoint=entry_wp, exit_waypoint=exit_wp,
                 intersection=intersection, type=edge_type)
 
-        # generate and add jaywaling edges to graph
-        self._generate_jaywalking_graph_edges()
+    # def _generate_jaywalking_graph_edges(self):
+    #     """Generate jaywalking edges and add them directly to the routing graph"""
+    #
+    #     topology_waypoints = self._get_all_waypoints_from_topology(self.ped_topology)
+    #     topology_xyz = self._get_all_xyz_nodes_from_topology(self.ped_topology)
+    #
+    #     # search for an opposing waypoint on the other side of the road for every waypoint in the pedestrian topology
+    #     for wp, xyz in zip(topology_waypoints, topology_xyz):
+    #         if wp.lane_type is not carla.LaneType.Sidewalk:
+    #             continue
+    #
+    #         opposite_waypoint = None
+    #         lane_id_sign = np.sign(wp.lane_id)
+    #
+    #         # Check for sidewalk lane type until there are no waypoints by going left
+    #         left_lane = wp.get_left_lane()
+    #         while left_lane and not opposite_waypoint:
+    #             if left_lane.lane_type == carla.LaneType.Sidewalk:
+    #                 opposite_waypoint = left_lane
+    #
+    #             # the direction of the lanes change when crossing the mid_line (= sign change of lane_id) and
+    #             # therefore left and right also changes
+    #             if np.sign(left_lane.lane_id) == lane_id_sign:
+    #                 left_lane = left_lane.get_left_lane()
+    #             else:
+    #                 left_lane = left_lane.get_right_lane()
+    #
+    #         # Check for sidewalk lane type until there are no waypoints by going right
+    #         right_lane = wp.get_right_lane()
+    #         while right_lane and not opposite_waypoint:
+    #             if right_lane.lane_type == carla.LaneType.Sidewalk:
+    #                 opposite_waypoint = right_lane
+    #
+    #             # the direction of the lanes change when crossing the mid_line (= sign change of lane_id) and
+    #             # therefore left and right also changes
+    #             if np.sign(right_lane.lane_id) == lane_id_sign:
+    #                 right_lane = right_lane.get_right_lane()
+    #             else:
+    #                 right_lane = right_lane.get_left_lane()
+    #
+    #         # if opposite waypoint exists, add a jaywalking edge across the road to the graph
+    #         if opposite_waypoint:
+    #             current_id = self.id_map[xyz]
+    #             opposite_id = self._find_closest_node_id(opposite_waypoint.transform.location)
+    #             if opposite_id:
+    #                 exit_wp = self.graph.nodes[opposite_id]['waypoint']
+    #                 distance = wp.transform.location.distance(exit_wp.transform.location)
+    #
+    #                 self.graph.add_edge(
+    #                     current_id, opposite_id,
+    #                     length=distance * self.jaywalking_weight_factor,
+    #                     entry_waypoint=wp, exit_waypoint=exit_wp,
+    #                     intersection=wp.is_junction, type=EdgeType.JAYWALKING)
 
-    def _generate_jaywalking_graph_edges(self):
-        """Generate jaywalking edges and add them directly to the routing graph"""
+    def _generate_jaywalking_edges(self):
+        """Generate and return jaywalking edges (+ edges from sidewalk center to sidewalk border)"""
 
         topology_waypoints = self._get_all_waypoints_from_topology(self.ped_topology)
         topology_xyz = self._get_all_xyz_nodes_from_topology(self.ped_topology)
+
+        jaywalking_edges = []
 
         # search for an opposing waypoint on the other side of the road for every waypoint in the pedestrian topology
         for wp, xyz in zip(topology_waypoints, topology_xyz):
@@ -527,36 +584,42 @@ class PedPathPlanner:
                     left_lane = left_lane.get_right_lane()
 
             # Check for sidewalk lane type until there are no waypoints by going right
-            r = wp.get_right_lane()
-            while r and not opposite_waypoint:
-                if r.lane_type == carla.LaneType.Sidewalk:
-                    opposite_waypoint = r
+            right_lane = wp.get_right_lane()
+            while right_lane and not opposite_waypoint:
+                if right_lane.lane_type == carla.LaneType.Sidewalk:
+                    opposite_waypoint = right_lane
 
                 # the direction of the lanes change when crossing the mid_line (= sign change of lane_id) and therefore
                 # left and right also changes
-                if np.sign(r.lane_id) == lane_id_sign:
-                    r = r.get_right_lane()
+                if np.sign(right_lane.lane_id) == lane_id_sign:
+                    right_lane = right_lane.get_right_lane()
                 else:
-                    r = r.get_left_lane()
+                    right_lane = right_lane.get_left_lane()
 
-            # if opposite waypoint exists, add a jaywalking edge across the road to the graph
+            # if opposite waypoint exists, generate new waypoints on the shoulder between sidewalk and road and connect
+            # them with edges
             if opposite_waypoint:
-                current_id = self.id_map[xyz]
+                # find the closest already existing node in order to avoid lots of very close nodes/waypoints
                 opposite_id = self._find_closest_node_id(opposite_waypoint.transform.location)
                 if opposite_id:
-                    exit_w = self.graph.nodes[opposite_id]['waypoint']
-                    distance = wp.transform.location.distance(exit_w.transform.location)
+                    opposite_wp = self.graph.nodes[opposite_id]['waypoint']
+                    opposite_shoulder_wp = self.carla_map.get_waypoint(opposite_wp.transform.location,
+                                                                       lane_type=carla.LaneType.Shoulder)
+                    shoulder_wp = self.carla_map.get_waypoint(wp.transform.location, lane_type=carla.LaneType.Shoulder)
 
-                    self.graph.add_edge(
-                        current_id, opposite_id,
-                        length=distance * self.jaywalking_weight_factor,
-                        entry_waypoint=wp, exit_waypoint=exit_w,
-                        intersection=wp.is_junction, type=EdgeType.JAYWALKING)
+                    jaywalking_edges.extend(self._generate_edge_dicts([wp, shoulder_wp], EdgeType.SIDEWALK_TO_ROAD))
+                    jaywalking_edges.extend(self._generate_edge_dicts([opposite_wp, opposite_shoulder_wp],
+                                                                      EdgeType.SIDEWALK_TO_ROAD))
+                    jaywalking_edges.extend(self._generate_edge_dicts([shoulder_wp, opposite_shoulder_wp],
+                                                                      EdgeType.JAYWALKING))
+
+        return jaywalking_edges
 
     def _extract_subgraphs(self):
         """Extract sub-graphs from the main graph to allow routing with and without jaywalking"""
 
-        graph_jaywalking_at_junction = self._filter_graph_edges(self.graph, 'type', EdgeType.JAYWALKING)
+        tmp_graph = self._filter_graph_edges(self.graph, 'type', EdgeType.JAYWALKING)
+        graph_jaywalking_at_junction = self._filter_graph_edges(tmp_graph, 'type', EdgeType.SIDEWALK_TO_ROAD)
         graph_no_jaywalking = self._filter_graph_edges(graph_jaywalking_at_junction, 'type',
                                                        EdgeType.JAYWALKING_JUNCTION)
 
@@ -579,7 +642,7 @@ class PedPathPlanner:
         return filtered_graph
 
     def _get_all_waypoints_from_topology(self, topology):
-        
+
         all_waypoints = []
         for segment in topology:
             all_waypoints.append(segment['entry'])
@@ -588,7 +651,7 @@ class PedPathPlanner:
         return all_waypoints
 
     def _get_all_xyz_nodes_from_topology(self, topology):
-        
+
         all_nodes = []
         for segment in topology:
             all_nodes.append(segment['entry_xyz'])

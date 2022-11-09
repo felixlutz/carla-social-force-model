@@ -86,18 +86,17 @@ class SimulationRunner:
             if self.draw_bounding_boxes:
                 self.carla_sim.draw_bounding_box(actor_id, self.step_length)
 
-        obstacle_pos, obstacle_vel, borders, carla_borders = get_dynamic_obstacles(self.carla_sim.world,
-                                                                                   self.scenario_config)
-        if obstacle_pos:
-            dynamic_obstacles = list(zip(obstacle_pos, borders))
-            self.ped_sim.update_dynamic_obstacles(dynamic_obstacles, obstacle_vel)
+        dynamic_obstacles, carla_borders = get_dynamic_obstacles(self.carla_sim.world, self.scenario_config)
+
+        if dynamic_obstacles:
+            self.ped_sim.update_dynamic_obstacles(dynamic_obstacles)
 
             if self.carla_sim.draw_obstacles:
                 for border in carla_borders:
                     self.carla_sim.draw_points(border, self.step_length)
 
         # Tick pedestrian simulation and propagate new velocities resulting from social force model to CARLA
-        self.ped_sim.tick()
+        self.ped_sim.tick(sim_time)
         new_velocities = self.ped_sim.get_new_velocities()
         if new_velocities is not None:
             for velocity in new_velocities:

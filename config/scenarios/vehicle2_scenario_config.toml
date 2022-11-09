@@ -1,7 +1,7 @@
 [map]
 map_name = 'Town10HD_Opt'
 map_path = 'Carla/Maps/'
-draw_obstacles = true
+draw_obstacles = false
 sumo_coordinates = false
 unload_props = false
 spectator_location = [-61.0, -17.0, 10.0]
@@ -21,69 +21,71 @@ spawn_location = [-33.5, -23.0, 1.0]
 generate_route = 'JAYWALKING'
 destination = [-61.0, -23.0, 0.0]
 speed = 1.5
-quantity = 3
+quantity = 1
 spawn_time = 0.0
 spawn_interval = 3.1
+crossing_safety_margin =  1.5
+crossing_speed_factor = 1.5
 
 [[walker.ped_spawner]]
 spawn_location = [-33.0, -22.0, 1.0]
 generate_route = 'JAYWALKING'
 destination = [-61.0, -22.0, 0.0]
 speed = 1.5
-quantity = 3
+quantity = 1
 spawn_time = 2.0
 spawn_interval = 4.5
+crossing_safety_margin =  1.5
+crossing_speed_factor = 1.5
 
 [[walker.ped_spawner]]
 spawn_location = [-33.5, -21.0, 1.0]
 generate_route = 'JAYWALKING'
 destination = [-61.0, -21.0, 0.0]
 speed = 1.5
-quantity = 3
+quantity = 1
 spawn_time = 1.0
 spawn_interval = 5.8
+crossing_safety_margin =  1.5
+crossing_speed_factor = 1.5
 
 [[walker.ped_spawner]]
 spawn_location = [-61.0, -22.0, 1.0]
 generate_route = 'JAYWALKING'
 destination = [-33.5, -22.0, 1.0]
 speed = 1.5
-quantity = 3
+quantity = 1
 spawn_time = 2.0
 spawn_interval = 3.1
+crossing_safety_margin =  1.5
+crossing_speed_factor = 1.5
 
 [[walker.ped_spawner]]
 spawn_location = [-61.5, -23.0, 1.0]
 generate_route = 'JAYWALKING'
 destination = [-33.5, -23.0, 1.0]
 speed = 1.5
-quantity = 3
+quantity = 1
 spawn_time = 0.0
 spawn_interval = 4.5
+crossing_safety_margin =  1.5
+crossing_speed_factor = 1.5
 
 [[walker.ped_spawner]]
 spawn_location = [-61.0, -21.0, 1.0]
 generate_route = 'JAYWALKING'
 destination = [-33.5, -21.0, 1.0]
 speed = 1.5
-quantity = 3
+quantity = 1
 spawn_time = 1.0
 spawn_interval = 4.8
+crossing_safety_margin =  1.5
+crossing_speed_factor = 1.5
 
 [vehicle]
-vehicle_seed = 20
+vehicle_seed = 200
 variate_speed_factor = 3
-no_bikes = false
-
-[[vehicle.vehicle_spawner]]
-spawn_point = 89
-speed_reduction_factor = 85
-auto_pilot = true
-quantity = 1
-spawn_time = 0.0
-spawn_interval = 5.0
-ignore_walkers_percentage = 100
-ignore_lights_percentage = 100
+no_bikes = true
 
 [[vehicle.vehicle_spawner]]
 spawn_point = 135

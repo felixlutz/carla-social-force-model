@@ -86,7 +86,7 @@ def main():
     argparser.add_argument(
         '-t', '--tick-time',
         metavar='T',
-        default=20,
+        default=10,
         type=float,
         help='Tick time between updates (forward velocity) (default: 0.2)')
     args = argparser.parse_args()

@@ -20,7 +20,7 @@ ai_controller = false
 spawn_location = [92.0, 91.0, 1.0]
 generate_route = 'JAYWALKING'
 destination = [118.0, 67.0, 0.0]
-speed = 2.5
+speed = 1.0
 quantity = 1
 spawn_time = 0.0
 
