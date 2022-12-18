@@ -63,6 +63,7 @@ class VehicleSpawnManager:
         if vehicle_spawner_config is not None:
             for spawner in vehicle_spawner_config:
                 spawn_location = spawner['spawn_point']
+                blueprint = spawner.get('blueprint')
                 auto_pilot = spawner.get('auto_pilot', True)
                 speed_reduction_factor = spawner.get('speed_reduction_factor', 30)
                 quantity = spawner.get('quantity', 1)
@@ -71,8 +72,8 @@ class VehicleSpawnManager:
                 ignore_walkers_percentage = spawner.get('ignore_walkers_percentage', 0)
                 ignore_lights_percentage = spawner.get('ignore_lights_percentage', 0)
 
-                vehicle_spawner = VehicleSpawner(spawn_location, auto_pilot, speed_reduction_factor, quantity,
-                                                 spawn_time, spawn_interval, ignore_walkers_percentage,
+                vehicle_spawner = VehicleSpawner(spawn_location, blueprint, auto_pilot, speed_reduction_factor,
+                                                 quantity, spawn_time, spawn_interval, ignore_walkers_percentage,
                                                  ignore_lights_percentage, self.recommended_spawn_points)
                 vehicle_spawners.append(vehicle_spawner)
 
@@ -85,7 +86,11 @@ class VehicleSpawnManager:
         spawn_transform = vehicle_spawner.carla_spawn_transform
 
         random.seed(self.vehicle_seed)
-        vehicle_bp = random.choice(self.vehicle_blueprints)
+
+        if vehicle_spawner.blueprint:
+            vehicle_bp = self.vehicle_blueprints.find(vehicle_spawner.blueprint)
+        else:
+            vehicle_bp = random.choice(self.vehicle_blueprints)
 
         # spawn vehicle in Carla
         batch = [self.SpawnActor(vehicle_bp, spawn_transform)
@@ -116,9 +121,10 @@ class VehicleSpawner:
     Class containing all the information necessary to spawn one or multiple vehicles from one spawn point.
     """
 
-    def __init__(self, spawn_point, auto_pilot, speed_reduction_factor, quantity, spawn_time, spawn_interval,
+    def __init__(self, spawn_point, blueprint, auto_pilot, speed_reduction_factor, quantity, spawn_time, spawn_interval,
                  ignore_walkers_percentage, ignore_lights_percentage, recommended_spawn_points):
         self.spawn_point = spawn_point
+        self.blueprint = blueprint
         self.auto_pilot = auto_pilot
         self.speed_reduction_factor = speed_reduction_factor
         self.quantity = quantity

@@ -87,6 +87,7 @@ class PedSpawnManager:
                         logging.warning('Length of waypoints and crossing_road_bools is not equal! '
                                         'Waypoints may get cut of!')
 
+                blueprint = spawn_point.get('blueprint')
                 quantity = spawn_point.get('quantity', 1)
                 spawn_time = spawn_point.get('spawn_time', 0.0)
                 spawn_interval = spawn_point.get('spawn_interval', 1.0)
@@ -101,8 +102,8 @@ class PedSpawnManager:
                     else:
                         waypoints = stateutils.convert_coordinates(waypoints, sumo_offset)
 
-                ped_spawner = PedSpawner(spawn_location, waypoints, crossing_road_bools, speed, quantity, spawn_time,
-                                         spawn_interval, crossing_speed_factor, crossing_safety_margin)
+                ped_spawner = PedSpawner(spawn_location, waypoints, crossing_road_bools, speed, blueprint, quantity,
+                                         spawn_time, spawn_interval, crossing_speed_factor, crossing_safety_margin)
                 ped_spawners.append(ped_spawner)
 
         return ped_spawners
@@ -115,7 +116,11 @@ class PedSpawnManager:
         ped_name = self._generate_ped_name()
 
         random.seed(self.ped_seed)
-        walker_bp = random.choice(self.carla_sim.walker_blueprints)
+
+        if ped_spawner.blueprint:
+            walker_bp = self.carla_sim.walker_blueprints.find(ped_spawner.blueprint)
+        else:
+            walker_bp = random.choice(self.carla_sim.walker_blueprints)
 
         if walker_bp.has_attribute('role_name'):
             walker_bp.set_attribute('role_name', ped_name)
@@ -168,10 +173,11 @@ class PedSpawner:
     Class containing all the information necessary to spawn one or multiple pedestrians from one spawn point.
     """
 
-    def __init__(self, spawn_location, waypoints, crossing_road_bools, speed, quantity, spawn_time, spawn_interval,
-                 crossing_speed_factor, crossing_safety_margin):
+    def __init__(self, spawn_location, waypoints, crossing_road_bools, speed, blueprint, quantity, spawn_time,
+                 spawn_interval, crossing_speed_factor, crossing_safety_margin):
         self.spawn_location = spawn_location
         self.target_speed = speed
+        self.blueprint = blueprint
         self.quantity = quantity
         self.spawn_interval = spawn_interval
         self.next_spawn_time = spawn_time

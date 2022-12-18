@@ -1,5 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
+from itertools import compress
 
 import numpy as np
 
@@ -203,8 +204,8 @@ class BorderForce(Force):
 
             # filter out borders that are too far away to be relevant
             distances = np.linalg.norm(loc - self.section_center, axis=-1)
-            indices = distances < self.section_length
-            close_borders = np.array(self.borders, dtype=object)[indices]
+            distance_filter = distances < self.section_length
+            close_borders = compress(self.borders, distance_filter)
 
             # get the closest point of each border within relevant range
             closest_i = [np.argmin(np.linalg.norm(loc - border, axis=-1)) for border in close_borders]
@@ -276,8 +277,9 @@ class ObstacleEvasionForce(Force):
 
             # filter out obstacles that are outside the defined perception threshold
             distances = np.linalg.norm(loc - self.obstacle_locs, axis=-1)
-            close_borders = np.array(self.obstacle_borders)[distances < self.perception_threshold]
-            close_obstacle_vel = np.array(self.obstacle_velocities)[distances < self.perception_threshold]
+            distance_filter = distances < self.perception_threshold
+            close_borders = compress(self.obstacle_borders, distance_filter)
+            close_obstacle_vel = np.array(self.obstacle_velocities)[distance_filter]
 
             # get the closest border point of each obstacle
             closest_i = [np.argmin(np.linalg.norm(loc - border, axis=-1)) for border in close_borders]
@@ -340,7 +342,7 @@ class ObstacleEvasionForce(Force):
     def update_obstacles(self, obstacles):
         obstacle_locs, obstacle_borders = zip(*obstacles)
         self.obstacle_locs = np.array(obstacle_locs)
-        self.obstacle_borders = np.array(obstacle_borders, dtype=object)
+        self.obstacle_borders = obstacle_borders
 
     def update_obstacle_velocities(self, velocities):
         self.obstacle_velocities = np.array(velocities)

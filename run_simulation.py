@@ -128,7 +128,7 @@ class SimulationRunner:
         if self.output_csv:
             scenario_name = self.scenario_config.get('scenario_name')
 
-            output_gen = OutputGenerator(self.ped_sim, self.output_path, self.step_length, scenario_name)
+            output_gen = OutputGenerator(self.ped_sim, self.output_path, scenario_name)
             output_gen.generate_ped_csv()
             output_gen.generate_veh_csv()
 
