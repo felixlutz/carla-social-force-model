@@ -27,7 +27,6 @@ class CarlaSimulation:
             self.world = self.client.load_world(self.map_name)
             # update map variable and start time after loading new map
             self.carla_map = self.world.get_map()
-            self.start_time = self.world.get_snapshot().timestamp.elapsed_seconds
 
         # unload props
         if self.unload_props:
@@ -47,6 +46,7 @@ class CarlaSimulation:
         settings.max_substep_delta_time = args.sub_step_length
         settings.max_substeps = math.ceil(self.step_length / args.sub_step_length)
         self.world.apply_settings(settings)
+        self.start_time = self.world.get_snapshot().timestamp.elapsed_seconds
 
         # set spectator
         spectator_loc = self.map_config.get('spectator_location')

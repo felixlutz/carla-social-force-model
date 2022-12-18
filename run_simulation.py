@@ -6,9 +6,9 @@ import carla
 import numpy as np
 import tomli
 
-import visualization
 from carla_simulation import CarlaSimulation
 from obstacles import extract_sidewalk, extract_obstacles, get_dynamic_obstacles, extract_borders_from_config
+from output_generator import OutputGenerator
 from pedestrian_simulation import PedestrianSimulation
 from pedestrian_spawner import PedSpawnManager
 from vehicle_spawner import VehicleSpawnManager
@@ -29,8 +29,7 @@ class SimulationRunner:
         self.vehicle_spawn_manager = vehicle_spawn_manager
         self.scenario_config = scenario_config
 
-        self.plot = args.plot
-        self.animate = args.animate
+        self.output_csv = args.csv
         self.output_path = args.output
         self.step_length = args.step_length
 
@@ -126,12 +125,12 @@ class SimulationRunner:
         self.carla_sim.close()
         self.ped_sim.close()
 
-        if self.plot:
-            with visualization.SceneVisualizer(self.ped_sim, self.output_path, self.step_length) as sv:
-                sv.plot()
-        if self.animate:
-            with visualization.SceneVisualizer(self.ped_sim, self.output_path, self.step_length) as sv:
-                sv.animate()
+        if self.output_csv:
+            scenario_name = self.scenario_config.get('scenario_name')
+
+            output_gen = OutputGenerator(self.ped_sim, self.output_path, self.step_length, scenario_name)
+            output_gen.generate_ped_csv()
+            output_gen.generate_veh_csv()
 
 
 def simulation_loop(args):
@@ -243,10 +242,9 @@ if __name__ == '__main__':
                            default=0.005,
                            type=float,
                            help='set carla physics sub step length (default: 0.005s)')
-    argparser.add_argument('--plot', action='store_true', help='plot pedestrian trajectories')
-    argparser.add_argument('--animate', action='store_true', help='animate pedestrian trajectories')
+    argparser.add_argument('--csv', action='store_true', help='output csv with sim results')
     argparser.add_argument('--output',
-                           default='output/sim_run',
+                           default='output',
                            type=str,
                            help='path for output plot or animation')
     argparser.add_argument('--debug', action='store_true', help='enable debug messages')

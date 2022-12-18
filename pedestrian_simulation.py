@@ -14,9 +14,12 @@ class PedestrianSimulation:
         self.section_info = border_section_info
 
         self.static_obstacles = obstacles
-        self.dynamic_obstacles = []
-        self.dynamic_obstacles_vel = []
-        self.dynamic_obstacles_extent = []
+        self.dyn_obs_ids = []
+        self.dyn_obstacles = []
+        self.dyn_obs_heading = []
+        self.dyn_obs_vel = []
+        self.dyn_obs_extent = []
+        self.all_dyn_obs_states = {}
 
         self.peds = PedState(step_length, sfm_config)
 
@@ -60,15 +63,17 @@ class PedestrianSimulation:
 
         for ped in self.peds.state[[m.current_mode == PedMode.CHECKING_TRAFFIC for m in self.peds.mode()]]:
             ready_to_cross = True
-            if self.dynamic_obstacles:
-                ready_to_cross = check_traffic(ped, self.dynamic_obstacles, self.dynamic_obstacles_vel,
-                                               self.dynamic_obstacles_extent)
+            if self.dyn_obstacles:
+                ready_to_cross = check_traffic(ped, self.dyn_obstacles, self.dyn_obs_vel, self.dyn_obs_extent)
 
             if ready_to_cross:
                 ped['mode'].set_mode(PedMode.CROSSING_ROAD)
 
         # record current state for plotting
-        self.peds.record_current_state()
+        self.peds.record_current_state(sim_time)
+
+        if self.dyn_obstacles:
+            self.record_dyn_obstacle_states(sim_time)
 
         F = sum(map(lambda x: x.get_force(self.peds), self.forces.values()))
 
@@ -98,12 +103,13 @@ class PedestrianSimulation:
         self.peds.update_state(walker_id, location, velocity)
 
     def update_dynamic_obstacles(self, dynamic_obstacles):
-        obstacle_pos, self.dynamic_obstacles_vel, self.dynamic_obstacles_extent, borders = dynamic_obstacles
-        self.dynamic_obstacles = list(zip(obstacle_pos, borders))
+        self.dyn_obs_ids, obstacle_pos, self.dyn_obs_heading, self.dyn_obs_vel, self.dyn_obs_extent, borders \
+            = dynamic_obstacles
+        self.dyn_obstacles = list(zip(obstacle_pos, borders))
 
-        if 'dynamic_obstacle_force' in self.forces:
-            self.forces['dynamic_obstacle_force'].update_obstacles(self.dynamic_obstacles)
-            self.forces['dynamic_obstacle_force'].update_obstacle_velocities(self.dynamic_obstacles_vel)
+        if 'dynamic_obstacle_force' in self.forces and self.dyn_obstacles:
+            self.forces['dynamic_obstacle_force'].update_obstacles(self.dyn_obstacles)
+            self.forces['dynamic_obstacle_force'].update_obstacle_velocities(self.dyn_obs_vel)
 
     def get_new_velocities(self):
         return self.peds.get_new_velocities()
@@ -115,7 +121,20 @@ class PedestrianSimulation:
         return self.static_obstacles
 
     def get_dynamic_obstacles(self):
-        return self.dynamic_obstacles
+        return self.dyn_obstacles
+
+    def record_dyn_obstacle_states(self, sim_time):
+        obstacle_loc, _ = zip(*self.dyn_obstacles)
+        veh_state_dtype = [('id', 'i4'), ('loc', 'f8', (2,)), ('heading', 'f8'), ('vel', 'f8', (2,)),
+                           ('extent', 'f8', (2,))]
+        veh_state = np.empty(len(self.dyn_obs_ids), dtype=veh_state_dtype)
+        veh_state['id'] = self.dyn_obs_ids
+        veh_state['loc'] = obstacle_loc
+        veh_state['heading'] = self.dyn_obs_heading
+        veh_state['vel'] = self.dyn_obs_vel
+        veh_state['extent'] = self.dyn_obs_extent
+
+        self.all_dyn_obs_states[sim_time] = veh_state
 
     def get_states(self):
         return self.peds.get_all_states()

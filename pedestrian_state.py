@@ -23,7 +23,7 @@ class PedState:
         self.new_velocities = None
 
         # list of all states to record simulation
-        self.all_states = []
+        self.all_states = {}
 
     def add_pedestrian(self, initial_ped_state):
         """
@@ -111,11 +111,11 @@ class PedState:
     def desired_directions(self) -> np.ndarray:
         return stateutils.desired_directions(self.state)
 
-    def record_current_state(self):
-        self.all_states.append(self.state.copy())
+    def record_current_state(self, sim_time):
+        self.all_states[sim_time] = self.state.copy()
 
-    def get_all_states(self) -> np.ndarray:
-        return np.stack(self.all_states)
+    def get_all_states(self) -> dict:
+        return self.all_states
 
     @staticmethod
     def capped_velocity(desired_velocity, max_velocity) -> np.ndarray:

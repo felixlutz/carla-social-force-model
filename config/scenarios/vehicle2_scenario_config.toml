@@ -108,16 +108,6 @@ ignore_walkers_percentage = 100
 ignore_lights_percentage = 100
 
 [[vehicle.vehicle_spawner]]
-spawn_point = 130
-speed_reduction_factor = 85
-auto_pilot = true
-quantity = 1
-spawn_time = 0.0
-spawn_interval = 5.0
-ignore_walkers_percentage = 100
-ignore_lights_percentage = 100
-
-[[vehicle.vehicle_spawner]]
 spawn_point = 138
 speed_reduction_factor = 85
 auto_pilot = true
