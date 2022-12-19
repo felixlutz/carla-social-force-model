@@ -99,6 +99,12 @@ class CarlaSimulation:
 
         return response.actor_id
 
+    def update_actor(self, actor_id, transform, speed=0):
+        actor = self.world.get_actor(actor_id)
+        velocity = transform.get_forward_vector() * speed
+        actor.set_transform(transform)
+        actor.set_target_velocity(velocity)
+
     def destroy_actor(self, actor_id):
         """
         Destroys the given actor.

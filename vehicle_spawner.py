@@ -2,6 +2,7 @@ import logging
 import random
 
 import carla
+import numpy as np
 
 
 class VehicleSpawnManager:
@@ -36,6 +37,7 @@ class VehicleSpawnManager:
         self.traffic_manager.set_random_device_seed(self.vehicle_seed)
 
         self.vehicle_list = []
+        self.trajectory_dict = {}
 
     def tick(self, sim_time):
         """
@@ -62,9 +64,12 @@ class VehicleSpawnManager:
         vehicle_spawners = []
         if vehicle_spawner_config is not None:
             for spawner in vehicle_spawner_config:
-                spawn_location = spawner['spawn_point']
+                spawn_location = spawner.get('spawn_point')
                 blueprint = spawner.get('blueprint')
                 auto_pilot = spawner.get('auto_pilot', True)
+                trajectory = spawner.get('trajectory', [])
+                headings = spawner.get('headings', [])
+                speeds = spawner.get('speeds', [])
                 speed_reduction_factor = spawner.get('speed_reduction_factor', 30)
                 quantity = spawner.get('quantity', 1)
                 spawn_time = spawner.get('spawn_time', 0.0)
@@ -72,9 +77,10 @@ class VehicleSpawnManager:
                 ignore_walkers_percentage = spawner.get('ignore_walkers_percentage', 0)
                 ignore_lights_percentage = spawner.get('ignore_lights_percentage', 0)
 
-                vehicle_spawner = VehicleSpawner(spawn_location, blueprint, auto_pilot, speed_reduction_factor,
-                                                 quantity, spawn_time, spawn_interval, ignore_walkers_percentage,
-                                                 ignore_lights_percentage, self.recommended_spawn_points)
+                vehicle_spawner = VehicleSpawner(spawn_location, blueprint, auto_pilot, trajectory, headings, speeds,
+                                                 speed_reduction_factor, quantity, spawn_time, spawn_interval,
+                                                 ignore_walkers_percentage, ignore_lights_percentage,
+                                                 self.recommended_spawn_points)
                 vehicle_spawners.append(vehicle_spawner)
 
         return vehicle_spawners
@@ -109,9 +115,18 @@ class VehicleSpawnManager:
 
             vehicle = self.carla_sim.world.get_actor(actor_id)
             self.vehicle_list.append(actor_id)
-            self.traffic_manager.vehicle_percentage_speed_difference(vehicle, vehicle_spawner.speed_reduction_factor)
-            self.traffic_manager.ignore_walkers_percentage(vehicle, vehicle_spawner.ignore_walkers_percentage)
-            self.traffic_manager.ignore_lights_percentage(vehicle, vehicle_spawner.ignore_lights_percentage)
+
+            if vehicle_spawner.auto_pilot:
+                self.traffic_manager.vehicle_percentage_speed_difference(vehicle,
+                                                                         vehicle_spawner.speed_reduction_factor)
+                self.traffic_manager.ignore_walkers_percentage(vehicle, vehicle_spawner.ignore_walkers_percentage)
+                self.traffic_manager.ignore_lights_percentage(vehicle, vehicle_spawner.ignore_lights_percentage)
+            else:
+                carla_trajectory = [generate_carla_transform(location, heading)
+                                    for location, heading in zip(vehicle_spawner.trajectory, vehicle_spawner.headings)]
+                self.trajectory_dict[actor_id] = {}
+                self.trajectory_dict[actor_id]['trajectory'] = carla_trajectory
+                self.trajectory_dict[actor_id]['speeds'] = vehicle_spawner.speeds
 
             logging.info(f'Spawned {vehicle.type_id}.')
 
@@ -121,11 +136,15 @@ class VehicleSpawner:
     Class containing all the information necessary to spawn one or multiple vehicles from one spawn point.
     """
 
-    def __init__(self, spawn_point, blueprint, auto_pilot, speed_reduction_factor, quantity, spawn_time, spawn_interval,
-                 ignore_walkers_percentage, ignore_lights_percentage, recommended_spawn_points):
+    def __init__(self, spawn_point, blueprint, auto_pilot, trajectory, headings, speeds, speed_reduction_factor,
+                 quantity, spawn_time, spawn_interval, ignore_walkers_percentage, ignore_lights_percentage,
+                 recommended_spawn_points):
         self.spawn_point = spawn_point
         self.blueprint = blueprint
         self.auto_pilot = auto_pilot
+        self.trajectory = trajectory
+        self.headings = headings
+        self.speeds = speeds
         self.speed_reduction_factor = speed_reduction_factor
         self.quantity = quantity
         self.spawn_interval = spawn_interval
@@ -153,6 +172,20 @@ class VehicleSpawner:
         Generate spawn transform for Carla simulator.
         :return: Carla spawn point
         """
-        transform = self.recommended_spawn_points[self.spawn_point]
+        if self.spawn_point:
+            transform = self.recommended_spawn_points[self.spawn_point]
+        else:
+            spawn_loc = self.trajectory.pop(0)
+            heading = self.headings.pop(0)
+
+            transform = generate_carla_transform(spawn_loc, heading, 1.0)
 
         return transform
+
+
+def generate_carla_transform(location, heading, z_loc=0.0):
+    transform = carla.Transform()
+    transform.location = carla.Location(location[0], location[1], z_loc)
+    transform.rotation = carla.Rotation(0, np.degrees(heading), 0)
+
+    return transform
