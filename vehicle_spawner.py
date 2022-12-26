@@ -4,6 +4,8 @@ import random
 import carla
 import numpy as np
 
+from agents.navigation.extended_behavior_agent import ExtendedBehaviorAgent
+
 
 class VehicleSpawnManager:
     """
@@ -38,6 +40,7 @@ class VehicleSpawnManager:
 
         self.vehicle_list = []
         self.trajectory_dict = {}
+        self.vehicle_agent_dict = {}
 
     def tick(self, sim_time):
         """
@@ -67,6 +70,8 @@ class VehicleSpawnManager:
                 spawn_location = spawner.get('spawn_point')
                 blueprint = spawner.get('blueprint')
                 auto_pilot = spawner.get('auto_pilot', True)
+                use_traffic_manager = spawner.get('use_traffic_manager', False)
+                destination = spawner.get('destination')
                 trajectory = spawner.get('trajectory', [])
                 headings = spawner.get('headings', [])
                 speeds = spawner.get('speeds', [])
@@ -77,10 +82,10 @@ class VehicleSpawnManager:
                 ignore_walkers_percentage = spawner.get('ignore_walkers_percentage', 0)
                 ignore_lights_percentage = spawner.get('ignore_lights_percentage', 0)
 
-                vehicle_spawner = VehicleSpawner(spawn_location, blueprint, auto_pilot, trajectory, headings, speeds,
-                                                 speed_reduction_factor, quantity, spawn_time, spawn_interval,
-                                                 ignore_walkers_percentage, ignore_lights_percentage,
-                                                 self.recommended_spawn_points)
+                vehicle_spawner = VehicleSpawner(spawn_location, blueprint, auto_pilot, use_traffic_manager,
+                                                 destination, trajectory, headings, speeds, speed_reduction_factor,
+                                                 quantity, spawn_time, spawn_interval, ignore_walkers_percentage,
+                                                 ignore_lights_percentage, self.recommended_spawn_points)
                 vehicle_spawners.append(vehicle_spawner)
 
         return vehicle_spawners
@@ -99,9 +104,9 @@ class VehicleSpawnManager:
             vehicle_bp = random.choice(self.vehicle_blueprints)
 
         # spawn vehicle in Carla
+        tm_autopilot = vehicle_spawner.auto_pilot and vehicle_spawner.use_traffic_manager
         batch = [self.SpawnActor(vehicle_bp, spawn_transform)
-                     .then(self.SetAutopilot(self.FutureActor, vehicle_spawner.auto_pilot,
-                                             self.traffic_manager.get_port()))]
+                     .then(self.SetAutopilot(self.FutureActor, tm_autopilot, self.traffic_manager.get_port()))]
         actor_id = self.carla_sim.spawn_actor_with_batch(batch)
 
         if self.variate_speed_factor != 0.0:
@@ -117,10 +122,19 @@ class VehicleSpawnManager:
             self.vehicle_list.append(actor_id)
 
             if vehicle_spawner.auto_pilot:
-                self.traffic_manager.vehicle_percentage_speed_difference(vehicle,
-                                                                         vehicle_spawner.speed_reduction_factor)
-                self.traffic_manager.ignore_walkers_percentage(vehicle, vehicle_spawner.ignore_walkers_percentage)
-                self.traffic_manager.ignore_lights_percentage(vehicle, vehicle_spawner.ignore_lights_percentage)
+                if vehicle_spawner.use_traffic_manager:
+                    self.traffic_manager.vehicle_percentage_speed_difference(vehicle,
+                                                                             vehicle_spawner.speed_reduction_factor)
+                    self.traffic_manager.ignore_walkers_percentage(vehicle, vehicle_spawner.ignore_walkers_percentage)
+                    self.traffic_manager.ignore_lights_percentage(vehicle, vehicle_spawner.ignore_lights_percentage)
+                else:
+                    self.carla_sim.tick()
+                    agent = ExtendedBehaviorAgent(vehicle, behavior='cautious')
+                    agent.set_destination(vehicle_spawner.carla_destination_transform.location,
+                                          vehicle_spawner.carla_spawn_transform.location)
+                    agent.ignore_traffic_lights(vehicle_spawner.ignore_lights_percentage > 0)
+                    agent.ignore_pedestrians(vehicle_spawner.ignore_walkers_percentage > 0)
+                    self.vehicle_agent_dict[actor_id] = agent
             else:
                 carla_trajectory = [generate_carla_transform(location, heading)
                                     for location, heading in zip(vehicle_spawner.trajectory, vehicle_spawner.headings)]
@@ -136,15 +150,17 @@ class VehicleSpawner:
     Class containing all the information necessary to spawn one or multiple vehicles from one spawn point.
     """
 
-    def __init__(self, spawn_point, blueprint, auto_pilot, trajectory, headings, speeds, speed_reduction_factor,
-                 quantity, spawn_time, spawn_interval, ignore_walkers_percentage, ignore_lights_percentage,
-                 recommended_spawn_points):
+    def __init__(self, spawn_point, blueprint, auto_pilot, use_traffic_manager, destination, trajectory, headings,
+                 speeds, speed_reduction_factor, quantity, spawn_time, spawn_interval, ignore_walkers_percentage,
+                 ignore_lights_percentage, recommended_spawn_points):
         self.spawn_point = spawn_point
         self.blueprint = blueprint
         self.auto_pilot = auto_pilot
+        self.use_traffic_manager = use_traffic_manager
+        self.destination = destination
         self.trajectory = trajectory
         self.headings = headings
-        self.speeds = speeds
+        self.speeds = speeds[1:]
         self.speed_reduction_factor = speed_reduction_factor
         self.quantity = quantity
         self.spawn_interval = spawn_interval
@@ -154,6 +170,7 @@ class VehicleSpawner:
         self.recommended_spawn_points = recommended_spawn_points
 
         self.carla_spawn_transform = self.generate_carla_spawn_transform()
+        self.carla_destination_transform = self.recommended_spawn_points[self.destination]
 
     def ready_to_spawn(self, sim_time):
         """

@@ -42,6 +42,7 @@ class SimulationRunner:
         self.waypoint_dict = ped_spawn_manager.waypoint_dict
         self.vehicle_list = vehicle_spawn_manager.vehicle_list
         self.vehicle_trajectory_dict = vehicle_spawn_manager.trajectory_dict
+        self.vehicle_agent_dict = vehicle_spawn_manager.vehicle_agent_dict
 
     def tick(self):
         """
@@ -70,13 +71,19 @@ class SimulationRunner:
                 self.waypoint_dict.pop(ped_name)
                 logging.info(f'Despawned pedestrian {ped_name}.')
 
-        # Teleport vehicles that are not controlled by the traffic manager to the next point on their predefined
-        # trajectory
+        # Teleport vehicles that are not controlled by the traffic manager or agent to the next point on their
+        # predefined trajectory
         for veh_id, values in self.vehicle_trajectory_dict.items():
             if values['trajectory']:
                 next_loc = values['trajectory'].pop(0)
                 next_speed = values['speeds'].pop(0)
                 self.carla_sim.update_actor(veh_id, next_loc, next_speed)
+
+        # Apply control to all vehicles controlled by an agent
+        for veh_id, agent in self.vehicle_agent_dict.items():
+            if not agent.done():
+                vehicle_control = agent.run_step()
+                self.carla_sim.apply_vehicle_control(veh_id, vehicle_control)
 
         # Tick CARLA simulation and receive new location and velocity of all pedestrians and dynamic obstacles
         # (vehicles) and propagate the information to the pedestrian simulation

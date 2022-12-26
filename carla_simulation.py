@@ -114,6 +114,10 @@ class CarlaSimulation:
             return actor.destroy()
         return False
 
+    def apply_vehicle_control(self, actor_id, vehicle_control):
+        vehicle = self.world.get_actor(actor_id)
+        vehicle.apply_control(vehicle_control)
+
     def set_ped_velocity(self, walker_id, direction, speed):
         walker = self.world.get_actor(walker_id)
         walker_control = carla.WalkerControl(direction, speed, False)

@@ -1,0 +1,52 @@
+scenario_name = 'jaywalking'
+
+[map]
+map_name = 'Town01_Opt'
+map_path = 'Carla/Maps/'
+draw_obstacles = false
+spectator_location = [70, 171.9, 15.0]
+spectator_rotation = [-50.0, 0.0, 0.0]
+
+[walker]
+pedestrian_seed = 2020
+despawn_on_arrival = true
+waypoint_threshold = 1
+waypoint_distance = 5
+jaywalking_weight = 1
+draw_bounding_boxes = false
+ai_controller = false
+
+[[walker.ped_spawner]]
+spawn_location = [84.3, 171.9, 1.0]
+generate_route = 'JAYWALKING'
+destination = [96.2, 172.2, 0.0]
+blueprint = 'walker.pedestrian.0002'
+speed = 1.5
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 2.8
+crossing_speed_factor = 1.5
+crossing_safety_margin = 2
+
+[vehicle]
+vehicle_seed = 100
+variate_speed_factor = 3
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 103
+destination = 90
+blueprint = 'vehicle.tesla.model3'
+speed_reduction_factor = 0
+auto_pilot = true
+use_traffic_manager = false
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+
+[obstacles]
+resolution = 0.1
+ellipse_shape = true
+max_obstacle_z_pos = 0.3

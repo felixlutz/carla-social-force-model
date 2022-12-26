@@ -1,5 +1,5 @@
 import numpy as np
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 
 from stateutils import normalize
 
@@ -14,6 +14,7 @@ def check_traffic(ped, vehicles, vehicle_velocities, vehicle_extents):
     :param vehicle_extents: list of extents (relative x-, y-extent from vehicle center) of all vehicles
     :return: True if pedestrian can cross road safely and False if not
     """
+    safe_to_cross = True
 
     ped_loc = ped['loc'][:2]
     ped_goal = ped['next_waypoint'][:2]
@@ -23,9 +24,9 @@ def check_traffic(ped, vehicles, vehicle_velocities, vehicle_extents):
     # if safety margin is negative, the pedestrian crosses without checking traffic
     if safety_margin >= 0:
 
-        # calculate time needed by pedestrian to cross the road (+ safety margin)
+        # calculate time needed by pedestrian to cross the road
         distance = np.linalg.norm(ped_goal - ped_loc)
-        time_ped = distance / ped_speed + safety_margin
+        time_ped = distance / ped_speed
 
         ped_trajectory = LineString([ped_loc, ped_goal])
 
@@ -40,8 +41,18 @@ def check_traffic(ped, vehicles, vehicle_velocities, vehicle_extents):
             veh_trajectory = LineString([veh_front, veh_goal])
 
             # check if trajectory of the pedestrian intersects with the vehicle trajectory
-            if ped_trajectory.intersects(veh_trajectory):
-                return False
+            intersection_point = ped_trajectory.intersection(veh_trajectory)
 
-    return True
+            if not intersection_point.is_empty:
+                veh_speed = np.linalg.norm(veh_vel)
+                if veh_speed != 0:
+                    # calculate time to intersection point (+ safety margin)
+                    tti_ped = intersection_point.distance(Point(ped_loc)) / ped_speed + safety_margin
+                    tti_veh = intersection_point.distance(Point(veh_front)) / veh_speed
+
+                    # if the pedestrian can't pass the intersection point before the vehicle arrives it has to wait
+                    if tti_ped > tti_veh:
+                        safe_to_cross = False
+
+    return safe_to_cross
 
