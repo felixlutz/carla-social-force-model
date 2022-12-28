@@ -70,7 +70,7 @@ class VehicleSpawnManager:
                 spawn_location = spawner.get('spawn_point')
                 blueprint = spawner.get('blueprint')
                 auto_pilot = spawner.get('auto_pilot', True)
-                use_traffic_manager = spawner.get('use_traffic_manager', False)
+                use_traffic_manager = spawner.get('use_traffic_manager', True)
                 destination = spawner.get('destination')
                 trajectory = spawner.get('trajectory', [])
                 headings = spawner.get('headings', [])
@@ -170,7 +170,8 @@ class VehicleSpawner:
         self.recommended_spawn_points = recommended_spawn_points
 
         self.carla_spawn_transform = self.generate_carla_spawn_transform()
-        self.carla_destination_transform = self.recommended_spawn_points[self.destination]
+        if self.destination:
+            self.carla_destination_transform = self.recommended_spawn_points[self.destination]
 
     def ready_to_spawn(self, sim_time):
         """

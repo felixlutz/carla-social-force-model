@@ -4,6 +4,7 @@ scenario_name = 'jaywalking'
 map_name = 'Town01_Opt'
 map_path = 'Carla/Maps/'
 draw_obstacles = false
+sumo_coordinates = false
 spectator_location = [70, 171.9, 15.0]
 spectator_rotation = [-50.0, 0.0, 0.0]
 
@@ -25,8 +26,8 @@ speed = 1.5
 quantity = 1
 spawn_time = 0.0
 spawn_interval = 2.8
-crossing_speed_factor = 1.5
-crossing_safety_margin = 2
+crossing_speed_factor = 1
+crossing_safety_margin = 1
 
 [vehicle]
 vehicle_seed = 100
@@ -42,9 +43,21 @@ use_traffic_manager = false
 quantity = 1
 spawn_time = 0.0
 spawn_interval = 5.0
-ignore_walkers_percentage = 100
+ignore_walkers_percentage = 0
 ignore_lights_percentage = 100
 
+[[vehicle.vehicle_spawner]]
+spawn_point = 21
+destination = 102
+blueprint = 'vehicle.tesla.model3'
+speed_reduction_factor = 0
+auto_pilot = true
+use_traffic_manager = false
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
 
 [obstacles]
 resolution = 0.1

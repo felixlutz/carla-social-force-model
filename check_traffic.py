@@ -14,7 +14,6 @@ def check_traffic(ped, vehicles, vehicle_velocities, vehicle_extents):
     :param vehicle_extents: list of extents (relative x-, y-extent from vehicle center) of all vehicles
     :return: True if pedestrian can cross road safely and False if not
     """
-    safe_to_cross = True
 
     ped_loc = ped['loc'][:2]
     ped_goal = ped['next_waypoint'][:2]
@@ -30,15 +29,18 @@ def check_traffic(ped, vehicles, vehicle_velocities, vehicle_extents):
 
         ped_trajectory = LineString([ped_loc, ped_goal])
 
-        # calculate position of vehicle fronts
+        # calculate position of vehicle fronts and backs
         vehicle_locs, _ = zip(*vehicles)
         vehicle_directions, _ = normalize(vehicle_velocities)
         vehicle_fronts = vehicle_locs + vehicle_directions * vehicle_extents[:][0]
+        vehicle_backs = vehicle_locs - vehicle_directions * vehicle_extents[:][0]
 
-        for veh_front, veh_vel, veh_extent in zip(vehicle_fronts, vehicle_velocities, vehicle_extents):
+        vehicle_data = zip(vehicle_fronts, vehicle_backs, vehicle_velocities, vehicle_extents)
+
+        for veh_front, veh_back, veh_vel, veh_extent in vehicle_data:
             # calculate linear vehicle trajectory for the time period that the pedestrian needs to cross the road
-            veh_goal = veh_front + veh_vel * time_ped
-            veh_trajectory = LineString([veh_front, veh_goal])
+            veh_goal = veh_front + veh_vel * (time_ped + safety_margin)
+            veh_trajectory = LineString([veh_back, veh_goal])
 
             # check if trajectory of the pedestrian intersects with the vehicle trajectory
             intersection_point = ped_trajectory.intersection(veh_trajectory)
@@ -46,13 +48,15 @@ def check_traffic(ped, vehicles, vehicle_velocities, vehicle_extents):
             if not intersection_point.is_empty:
                 veh_speed = np.linalg.norm(veh_vel)
                 if veh_speed != 0:
-                    # calculate time to intersection point (+ safety margin)
-                    tti_ped = intersection_point.distance(Point(ped_loc)) / ped_speed + safety_margin
-                    tti_veh = intersection_point.distance(Point(veh_front)) / veh_speed
+                    # calculate times to intersection point
+                    tti_ped = intersection_point.distance(Point(ped_loc)) / ped_speed
+                    tti_veh_front = intersection_point.distance(Point(veh_front)) / veh_speed
+                    tti_veh_back = intersection_point.distance(Point(veh_back)) / veh_speed
 
-                    # if the pedestrian can't pass the intersection point before the vehicle arrives it has to wait
-                    if tti_ped > tti_veh:
-                        safe_to_cross = False
+                    # if the pedestrian would arrive at the intersection point withing the time frame between the
+                    # vehicle front and the vehicle back passing the intersection point it has to wait
+                    if tti_veh_front - safety_margin < tti_ped < tti_veh_back + safety_margin:
+                        return False
 
-    return safe_to_cross
+    return True
 
