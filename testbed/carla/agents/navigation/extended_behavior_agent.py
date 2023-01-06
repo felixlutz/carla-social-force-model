@@ -13,7 +13,7 @@ import numpy as np
 import carla
 from agents.navigation.extended_basic_agent import ExtendedBasicAgent
 from agents.navigation.local_planner import RoadOption
-from agents.navigation.behavior_types import Cautious, Aggressive, Normal
+from agents.navigation.behavior_types import Cautious, Aggressive, Normal, CustomSpeed
 
 from agents.tools.misc import get_speed, positive, is_within_distance, compute_distance
 
@@ -30,7 +30,7 @@ class ExtendedBehaviorAgent(ExtendedBasicAgent):
     are encoded in the agent, from cautious to a more aggressive ones.
     """
 
-    def __init__(self, vehicle, behavior='normal'):
+    def __init__(self, vehicle, behavior='normal', max_speed=50):
         """
         Constructor method.
 
@@ -61,6 +61,9 @@ class ExtendedBehaviorAgent(ExtendedBasicAgent):
 
         elif behavior == 'aggressive':
             self._behavior = Aggressive()
+
+        elif behavior == 'custom_speed':
+            self._behavior = CustomSpeed(max_speed)
 
     def _update_information(self):
         """

@@ -75,6 +75,7 @@ class VehicleSpawnManager:
                 trajectory = spawner.get('trajectory', [])
                 headings = spawner.get('headings', [])
                 speeds = spawner.get('speeds', [])
+                max_speed = spawner.get('max_speed', 50)
                 speed_reduction_factor = spawner.get('speed_reduction_factor', 30)
                 quantity = spawner.get('quantity', 1)
                 spawn_time = spawner.get('spawn_time', 0.0)
@@ -83,9 +84,10 @@ class VehicleSpawnManager:
                 ignore_lights_percentage = spawner.get('ignore_lights_percentage', 0)
 
                 vehicle_spawner = VehicleSpawner(spawn_location, blueprint, auto_pilot, use_traffic_manager,
-                                                 destination, trajectory, headings, speeds, speed_reduction_factor,
-                                                 quantity, spawn_time, spawn_interval, ignore_walkers_percentage,
-                                                 ignore_lights_percentage, self.recommended_spawn_points)
+                                                 destination, trajectory, headings, speeds, max_speed,
+                                                 speed_reduction_factor, quantity, spawn_time, spawn_interval,
+                                                 ignore_walkers_percentage, ignore_lights_percentage,
+                                                 self.recommended_spawn_points)
                 vehicle_spawners.append(vehicle_spawner)
 
         return vehicle_spawners
@@ -129,9 +131,11 @@ class VehicleSpawnManager:
                     self.traffic_manager.ignore_lights_percentage(vehicle, vehicle_spawner.ignore_lights_percentage)
                 else:
                     self.carla_sim.tick()
-                    agent = ExtendedBehaviorAgent(vehicle, behavior='cautious')
-                    agent.set_destination(vehicle_spawner.carla_destination_transform.location,
-                                          vehicle_spawner.carla_spawn_transform.location)
+                    agent = ExtendedBehaviorAgent(vehicle, behavior='custom_speed',
+                                                  max_speed=vehicle_spawner.max_speed)
+                    if vehicle_spawner.destination:
+                        agent.set_destination(vehicle_spawner.carla_destination_transform.location,
+                                              vehicle_spawner.carla_spawn_transform.location)
                     agent.ignore_traffic_lights(vehicle_spawner.ignore_lights_percentage > 0)
                     agent.ignore_pedestrians(vehicle_spawner.ignore_walkers_percentage > 0)
                     self.vehicle_agent_dict[actor_id] = agent
@@ -151,8 +155,8 @@ class VehicleSpawner:
     """
 
     def __init__(self, spawn_point, blueprint, auto_pilot, use_traffic_manager, destination, trajectory, headings,
-                 speeds, speed_reduction_factor, quantity, spawn_time, spawn_interval, ignore_walkers_percentage,
-                 ignore_lights_percentage, recommended_spawn_points):
+                 speeds, max_speed, speed_reduction_factor, quantity, spawn_time, spawn_interval,
+                 ignore_walkers_percentage, ignore_lights_percentage, recommended_spawn_points):
         self.spawn_point = spawn_point
         self.blueprint = blueprint
         self.auto_pilot = auto_pilot
@@ -161,6 +165,7 @@ class VehicleSpawner:
         self.trajectory = trajectory
         self.headings = headings
         self.speeds = speeds[1:]
+        self.max_speed = max_speed
         self.speed_reduction_factor = speed_reduction_factor
         self.quantity = quantity
         self.spawn_interval = spawn_interval
