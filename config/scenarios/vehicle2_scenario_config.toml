@@ -4,13 +4,13 @@ map_path = 'Carla/Maps/'
 draw_obstacles = false
 sumo_coordinates = false
 unload_props = false
-spectator_location = [-61.0, -17.0, 10.0]
-spectator_rotation = [-50.0, 0.0, 0.0]
+spectator_location = [-50.0, -17.0, 20.0]
+spectator_rotation = [-80.0, 0.0, 0.0]
 
 [walker]
-pedestrian_seed = 2020
+pedestrian_seed = 2025
 despawn_on_arrival = true
-waypoint_threshold = 2
+waypoint_threshold = 3
 waypoint_distance = 5
 jaywalking_weight = 1
 draw_bounding_boxes = false
@@ -22,10 +22,10 @@ generate_route = 'JAYWALKING'
 destination = [-61.0, -23.0, 0.0]
 speed = 1.5
 quantity = 1
-spawn_time = 0.0
+spawn_time = 8.0
 spawn_interval = 3.1
-crossing_safety_margin =  1.5
-crossing_speed_factor = 1.5
+crossing_safety_margin = -1
+crossing_speed_factor = 1.2
 
 [[walker.ped_spawner]]
 spawn_location = [-33.0, -22.0, 1.0]
@@ -35,8 +35,8 @@ speed = 1.5
 quantity = 1
 spawn_time = 2.0
 spawn_interval = 4.5
-crossing_safety_margin =  1.5
-crossing_speed_factor = 1.5
+crossing_safety_margin = -1
+crossing_speed_factor = 1.2
 
 [[walker.ped_spawner]]
 spawn_location = [-33.5, -21.0, 1.0]
@@ -46,8 +46,8 @@ speed = 1.5
 quantity = 1
 spawn_time = 1.0
 spawn_interval = 5.8
-crossing_safety_margin =  1.5
-crossing_speed_factor = 1.5
+crossing_safety_margin = -1
+crossing_speed_factor = 1.2
 
 [[walker.ped_spawner]]
 spawn_location = [-61.0, -22.0, 1.0]
@@ -57,8 +57,8 @@ speed = 1.5
 quantity = 1
 spawn_time = 2.0
 spawn_interval = 3.1
-crossing_safety_margin =  1.5
-crossing_speed_factor = 1.5
+crossing_safety_margin = -1
+crossing_speed_factor = 1.2
 
 [[walker.ped_spawner]]
 spawn_location = [-61.5, -23.0, 1.0]
@@ -66,10 +66,10 @@ generate_route = 'JAYWALKING'
 destination = [-33.5, -23.0, 1.0]
 speed = 1.5
 quantity = 1
-spawn_time = 0.0
+spawn_time = 8.0
 spawn_interval = 4.5
-crossing_safety_margin =  1.5
-crossing_speed_factor = 1.5
+crossing_safety_margin = -1
+crossing_speed_factor = 1.2
 
 [[walker.ped_spawner]]
 spawn_location = [-61.0, -21.0, 1.0]
@@ -79,18 +79,20 @@ speed = 1.5
 quantity = 1
 spawn_time = 1.0
 spawn_interval = 4.8
-crossing_safety_margin =  1.5
-crossing_speed_factor = 1.5
+crossing_safety_margin = -1
+crossing_speed_factor = 1.2
 
 [vehicle]
 vehicle_seed = 200
-variate_speed_factor = 3
+variate_speed_factor = 0
 no_bikes = true
 
 [[vehicle.vehicle_spawner]]
 spawn_point = 135
-speed_reduction_factor = 85
+speed_reduction_factor = 90
+max_speed = 3
 auto_pilot = true
+use_traffic_manager = false
 quantity = 1
 spawn_time = 0.0
 spawn_interval = 5.0
@@ -99,8 +101,10 @@ ignore_lights_percentage = 100
 
 [[vehicle.vehicle_spawner]]
 spawn_point = 126
-speed_reduction_factor = 85
+speed_reduction_factor = 90
+max_speed = 3
 auto_pilot = true
+use_traffic_manager = false
 quantity = 1
 spawn_time = 0.0
 spawn_interval = 5.0
@@ -109,8 +113,10 @@ ignore_lights_percentage = 100
 
 [[vehicle.vehicle_spawner]]
 spawn_point = 138
-speed_reduction_factor = 85
+speed_reduction_factor = 90
+max_speed = 3
 auto_pilot = true
+use_traffic_manager = false
 quantity = 1
 spawn_time = 0.0
 spawn_interval = 5.0
@@ -119,8 +125,10 @@ ignore_lights_percentage = 100
 
 [[vehicle.vehicle_spawner]]
 spawn_point = 110
-speed_reduction_factor = 85
+speed_reduction_factor = 90
+max_speed = 3
 auto_pilot = true
+use_traffic_manager = false
 quantity = 1
 spawn_time = 0.0
 spawn_interval = 5.0
@@ -129,8 +137,10 @@ ignore_lights_percentage = 100
 
 [[vehicle.vehicle_spawner]]
 spawn_point = 111
-speed_reduction_factor = 85
+speed_reduction_factor = 90
+max_speed = 3
 auto_pilot = true
+use_traffic_manager = false
 quantity = 1
 spawn_time = 0.0
 spawn_interval = 5.0
@@ -139,8 +149,10 @@ ignore_lights_percentage = 100
 
 [[vehicle.vehicle_spawner]]
 spawn_point = 115
-speed_reduction_factor = 85
+speed_reduction_factor = 90
+max_speed = 3
 auto_pilot = true
+use_traffic_manager = false
 quantity = 1
 spawn_time = 0.0
 spawn_interval = 5.0
@@ -149,8 +161,10 @@ ignore_lights_percentage = 100
 
 [[vehicle.vehicle_spawner]]
 spawn_point = 103
-speed_reduction_factor = 85
+speed_reduction_factor = 90
+max_speed = 3
 auto_pilot = true
+use_traffic_manager = false
 quantity = 1
 spawn_time = 0.0
 spawn_interval = 5.0
@@ -159,8 +173,10 @@ ignore_lights_percentage = 100
 
 [[vehicle.vehicle_spawner]]
 spawn_point = 104
-speed_reduction_factor = 85
+speed_reduction_factor = 90
+max_speed = 3
 auto_pilot = true
+use_traffic_manager = false
 quantity = 1
 spawn_time = 0.0
 spawn_interval = 5.0
@@ -169,8 +185,22 @@ ignore_lights_percentage = 100
 
 [[vehicle.vehicle_spawner]]
 spawn_point = 95
-speed_reduction_factor = 85
+speed_reduction_factor = 90
+max_speed = 3
 auto_pilot = true
+use_traffic_manager = false
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 5.0
+ignore_walkers_percentage = 100
+ignore_lights_percentage = 100
+
+[[vehicle.vehicle_spawner]]
+spawn_point = 139
+speed_reduction_factor = 90
+max_speed = 3
+auto_pilot = true
+use_traffic_manager = false
 quantity = 1
 spawn_time = 0.0
 spawn_interval = 5.0

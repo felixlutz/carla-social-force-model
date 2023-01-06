@@ -4,14 +4,14 @@ map_path = 'Carla/Maps/'
 draw_obstacles = false
 sumo_coordinates = false
 unload_props = false
-spectator_location = [-112.3, -50.5, 10.0]
-spectator_rotation = [-90.0, 0.0, 0.0]
+spectator_location = [-120, -45, 10.0]
+spectator_rotation = [-60.0, 25.0, 0.0]
 
 [walker]
 pedestrian_seed = 2020
 despawn_on_arrival = true
 waypoint_threshold = 2
-waypoint_distance = 10
+waypoint_distance = 5
 jaywalking_weight = 2
 draw_bounding_boxes = false
 ai_controller = true

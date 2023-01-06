@@ -14,6 +14,7 @@ cyan = carla.Color(0, 255, 255)
 yellow = carla.Color(255, 255, 0)
 orange = carla.Color(255, 162, 0)
 white = carla.Color(255, 255, 255)
+black = carla.Color(0, 0, 0)
 
 
 def draw_locations(debug, locations, z=0.5, lt=-1, color=red):
@@ -96,7 +97,7 @@ def main():
     map_name = config['map']['map_name']
     map_path = config['map']['map_path']
     ped_spawner = config['walker']['ped_spawner']
-    waypoint_distance = config.get('walker', {}).get('waypoint_distance', 20)
+    waypoint_distance = config.get('walker', {}).get('waypoint_distance', 5)
     jaywalking_weight = config.get('walker', {}).get('jaywalking_weight', 2)
 
     try:

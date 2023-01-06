@@ -70,14 +70,14 @@ quantity = 1
 spawn_time = 0.0
 spawn_interval = 2.0
 
-#[[walker.ped_spawner]]
-#spawn_location = [248.0, -6.0, 0.0]
-#destination = [215.0, -6.0, 0.0]
-#speed = 1.0
-#quantity = 1
-#spawn_time = 0.0
-#spawn_interval = 2.0
-#
+[[walker.ped_spawner]]
+spawn_location = [248.0, -6.0, 0.0]
+destination = [215.0, -6.0, 0.0]
+speed = 1.0
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 2.0
+
 #[[walker.ped_spawner]]
 #spawn_location = [247.0, -7.0, 0.0]
 #destination = [215.0, -6.0, 0.0]
@@ -109,14 +109,14 @@ spawn_interval = 2.0
 #quantity = 1
 #spawn_time = 0.0
 #spawn_interval = 2.0
-#
-#[[walker.ped_spawner]]
-#spawn_location = [219.0, -6.5, 0.0]
-#destination = [250.0, -6.0, 0.0]
-#speed = 1.0
-#quantity = 1
-#spawn_time = 0.0
-#spawn_interval = 2.0
+
+[[walker.ped_spawner]]
+spawn_location = [219.0, -6.5, 0.0]
+destination = [250.0, -6.0, 0.0]
+speed = 1.0
+quantity = 1
+spawn_time = 0.0
+spawn_interval = 2.0
 
 [[walker.ped_spawner]]
 spawn_location = [220.0, -7.0, 0.0]
