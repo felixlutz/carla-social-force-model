@@ -187,7 +187,7 @@ def extract_obstacles(carla_world, scenario_config):
 
     # Get objects from Carla word map
     env_objects = carla_world.get_environment_objects(carla.CityObjectLabel.Static)
-    env_objects.extend(carla_world.get_environment_objects(carla.CityObjectLabel.Dynamic))
+    #env_objects.extend(carla_world.get_environment_objects(carla.CityObjectLabel.Dynamic))
     env_objects.extend(carla_world.get_environment_objects(carla.CityObjectLabel.Poles))
     env_objects.extend(carla_world.get_environment_objects(carla.CityObjectLabel.Walls))
     env_objects.extend(carla_world.get_environment_objects(carla.CityObjectLabel.Vehicles))

@@ -53,7 +53,7 @@ def check_traffic(ped, vehicles, vehicle_velocities, vehicle_extents):
                     tti_veh_front = intersection_point.distance(Point(veh_front)) / veh_speed
                     tti_veh_back = intersection_point.distance(Point(veh_back)) / veh_speed
 
-                    # if the pedestrian would arrive at the intersection point withing the time frame between the
+                    # if the pedestrian would arrive at the intersection point within the time frame between the
                     # vehicle front and the vehicle back passing the intersection point it has to wait
                     if tti_veh_front - safety_margin < tti_ped < tti_veh_back + safety_margin:
                         return False
