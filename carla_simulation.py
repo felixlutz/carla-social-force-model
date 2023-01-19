@@ -37,14 +37,19 @@ class CarlaSimulation:
 
         # Configuring CARLA simulation in sync mode.
         self.original_settings = self.world.get_settings()
-        self.step_length = args.step_length
+        self.step_length = self.config.get('step_length', 0.05)
+        self.sub_step_length = self.config.get('sub_step_length', -1)
+
         settings = self.world.get_settings()
         settings.synchronous_mode = True
         settings.deterministic_ragdolls = True
         settings.fixed_delta_seconds = self.step_length
-        settings.substepping = True
-        settings.max_substep_delta_time = args.sub_step_length
-        settings.max_substeps = math.ceil(self.step_length / args.sub_step_length)
+
+        if self.sub_step_length > 0:
+            settings.substepping = True
+            settings.max_substep_delta_time = args.sub_step_length
+            settings.max_substeps = math.ceil(self.step_length / args.sub_step_length)
+
         self.world.apply_settings(settings)
         self.start_time = self.world.get_snapshot().timestamp.elapsed_seconds
 

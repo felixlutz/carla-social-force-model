@@ -31,7 +31,7 @@ class SimulationRunner:
 
         self.output_csv = args.csv
         self.output_path = args.output
-        self.step_length = args.step_length
+        self.step_length = scenario_config.get('step_length', {0.05})
 
         walker_config = scenario_config.get('walker', {})
         self.draw_bounding_boxes = walker_config.get('draw_bounding_boxes', False)
@@ -157,6 +157,7 @@ def simulation_loop(args):
     # load configs
     scenario_config = load_config(args.scenario_config)
     sfm_config = load_config(args.sfm_config)
+    step_length = scenario_config.get('step_length', 0.05)
 
     # initialize CARLA simulation
     carla_simulation = CarlaSimulation(args, scenario_config)
@@ -188,7 +189,7 @@ def simulation_loop(args):
             carla_simulation.draw_points(border, 30)
 
     # initialize pedestrian simulation
-    pedestrian_simulation = PedestrianSimulation(borders, section_info, obstacles, sfm_config, args.step_length)
+    pedestrian_simulation = PedestrianSimulation(borders, section_info, obstacles, sfm_config, step_length)
 
     # initialize pedestrian and vehicle spawn manager
     ped_spawn_manager = PedSpawnManager(scenario_config, carla_simulation, pedestrian_simulation)
@@ -208,8 +209,8 @@ def simulation_loop(args):
             end = time.time()
             elapsed = end - start
             # print(f'Elapsed time: {elapsed}')
-            if elapsed < args.step_length:
-                time.sleep(args.step_length - elapsed)
+            if elapsed < step_length:
+                time.sleep(step_length - elapsed)
 
     except KeyboardInterrupt:
         logging.info('Cancelled by user.')
@@ -250,14 +251,6 @@ if __name__ == '__main__':
                            default=2000,
                            type=int,
                            help='TCP port to listen to (default: 2000)')
-    argparser.add_argument('--step-length',
-                           default=0.05,
-                           type=float,
-                           help='set fixed delta seconds (default: 0.05s)')
-    argparser.add_argument('--sub-step-length',
-                           default=0.005,
-                           type=float,
-                           help='set carla physics sub step length (default: 0.005s)')
     argparser.add_argument('--csv', action='store_true', help='output csv with sim results')
     argparser.add_argument('--output',
                            default='output',
