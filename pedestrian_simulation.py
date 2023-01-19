@@ -4,6 +4,7 @@ import forces
 from check_traffic import check_traffic
 from ped_mode_state_machine import PedMode
 from pedestrian_state import PedState
+from stateutils import cap_velocity
 
 
 class PedestrianSimulation:
@@ -21,10 +22,12 @@ class PedestrianSimulation:
         self.dyn_obs_extent = []
         self.all_dyn_obs_states = {}
 
-        self.peds = PedState(step_length, sfm_config)
+        self.peds = PedState(sfm_config)
 
-        self.delta_t = step_length
+        self.step_length = step_length
         self.forces = self.init_forces()
+
+        self.new_velocities = None
 
     def init_forces(self):
         activated_forces = self.sfm_config['forces']
@@ -32,21 +35,21 @@ class PedestrianSimulation:
 
         # initialize social forces according to config
         if activated_forces.get('goal_attractive_force', False):
-            force_dict['goal_attractive_force'] = forces.GoalAttractiveForce(self.delta_t, self.sfm_config)
+            force_dict['goal_attractive_force'] = forces.GoalAttractiveForce(self.step_length, self.sfm_config)
         if activated_forces.get('pedestrian_force', False):
-            force_dict['pedestrian_force'] = forces.PedestrianForce(self.delta_t, self.sfm_config)
+            force_dict['pedestrian_force'] = forces.PedestrianForce(self.step_length, self.sfm_config)
         if activated_forces.get('border_force', False):
-            force_dict['border_force'] = forces.BorderForce(self.delta_t, self.sfm_config, self.borders,
+            force_dict['border_force'] = forces.BorderForce(self.step_length, self.sfm_config, self.borders,
                                                             self.section_info)
         if activated_forces.get('static_obstacle_force', False):
-            force_dict['static_obstacle_force'] = forces.ObstacleEvasionForce(self.delta_t, self.sfm_config)
+            force_dict['static_obstacle_force'] = forces.ObstacleEvasionForce(self.step_length, self.sfm_config)
             force_dict['static_obstacle_force'].update_obstacles(self.static_obstacles)
         if activated_forces.get('dynamic_obstacle_force', False):
-            force_dict['dynamic_obstacle_force'] = forces.ObstacleEvasionForce(self.delta_t, self.sfm_config, True)
+            force_dict['dynamic_obstacle_force'] = forces.ObstacleEvasionForce(self.step_length, self.sfm_config, True)
         if activated_forces.get('ped_repulsive_force', False):
-            force_dict['ped_repulsive_force'] = forces.PedRepulsiveForce(self.delta_t, self.sfm_config)
+            force_dict['ped_repulsive_force'] = forces.PedRepulsiveForce(self.step_length, self.sfm_config)
         if activated_forces.get('space_repulsive_force', False):
-            force_dict['space_repulsive_force'] = forces.SpaceRepulsiveForce(self.delta_t, self.sfm_config,
+            force_dict['space_repulsive_force'] = forces.SpaceRepulsiveForce(self.step_length, self.sfm_config,
                                                                              self.borders)
 
         return force_dict
@@ -77,7 +80,7 @@ class PedestrianSimulation:
 
         F = sum(map(lambda x: x.get_force(self.peds), self.forces.values()))
 
-        self.peds.calculate_new_velocities(F)
+        self.calculate_new_velocities(F)
 
     def close(self):
         pass
@@ -111,8 +114,17 @@ class PedestrianSimulation:
             self.forces['dynamic_obstacle_force'].update_obstacles(self.dyn_obstacles)
             self.forces['dynamic_obstacle_force'].update_obstacle_velocities(self.dyn_obs_vel)
 
+    def calculate_new_velocities(self, force):
+        """Calculate new desired velocities according to forces"""
+        # desired velocity
+        desired_velocity = self.peds.vel() + self.step_length * force
+        desired_velocity = cap_velocity(desired_velocity, self.peds.max_speed())
+
+        self.new_velocities = self.peds.state[['id', 'vel']]
+        self.new_velocities['vel'] = desired_velocity
+
     def get_new_velocities(self):
-        return self.peds.get_new_velocities()
+        return self.new_velocities
 
     def get_borders(self):
         return self.borders

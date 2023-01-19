@@ -11,8 +11,7 @@ class PedState:
     of every pedestrian modeled by the pedestrian simulation.
     """
 
-    def __init__(self, step_length, sfm_config):
-        self.step_length = step_length
+    def __init__(self, sfm_config):
         self.max_speed_factor = sfm_config.get('max_speed_factor', 1.3)
 
         self.ped_state_dtype = [('name', 'U8'), ('id', 'i4'), ('loc', 'f8', (3,)), ('vel', 'f8', (3,)),
@@ -20,7 +19,6 @@ class PedState:
                                 ('target_speed', 'f8')]
 
         self.state = None
-        self.new_velocities = None
 
         # list of all states to record simulation
         self.all_states = {}
@@ -78,18 +76,6 @@ class PedState:
         """Return the speeds corresponding to a given state."""
         return stateutils.speeds(self.state)
 
-    def calculate_new_velocities(self, force):
-        """Calculate new desired velocities according to forces"""
-        # desired velocity
-        desired_velocity = self.vel() + self.step_length * force
-        desired_velocity = self.capped_velocity(desired_velocity, self.max_speed())
-
-        self.new_velocities = self.state[['id', 'vel']]
-        self.new_velocities['vel'] = desired_velocity
-
-    def get_new_velocities(self) -> np.ndarray:
-        return self.new_velocities
-
     def update_state(self, walker_id, location, velocity):
         self.state['loc'][self.state['id'] == walker_id] = location
         self.state['vel'][self.state['id'] == walker_id] = velocity
@@ -117,10 +103,3 @@ class PedState:
     def get_all_states(self) -> dict:
         return self.all_states
 
-    @staticmethod
-    def capped_velocity(desired_velocity, max_velocity) -> np.ndarray:
-        """Scale down a desired velocity to its capped speed."""
-        desired_speeds = np.linalg.norm(desired_velocity, axis=-1)
-        desired_speeds[desired_speeds == 0.0] = 1.0
-        factor = np.minimum(1.0, max_velocity / desired_speeds)
-        return desired_velocity * np.expand_dims(factor, -1)

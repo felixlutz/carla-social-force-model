@@ -15,6 +15,14 @@ def desired_directions(state) -> np.ndarray:
     return directions
 
 
+def cap_velocity(desired_velocity, max_velocity) -> np.ndarray:
+    """Scale down a desired velocity to its capped speed."""
+    desired_speeds = np.linalg.norm(desired_velocity, axis=-1)
+    desired_speeds[desired_speeds == 0.0] = 1.0
+    factor = np.minimum(1.0, max_velocity / desired_speeds)
+    return desired_velocity * np.expand_dims(factor, -1)
+
+
 def speeds(state) -> np.ndarray:
     """Return the speeds corresponding to a given state."""
     velocity = state['vel']
