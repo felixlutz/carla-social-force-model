@@ -185,7 +185,7 @@ def extract_obstacles(carla_world, scenario_config):
     ellipse_shape = scenario_config.get('obstacles', {}).get('ellipse_shape', True)
     max_obstacle_z_pos = scenario_config.get('obstacles', {}).get('max_obstacle_z_pos', 0.3)
 
-    # Get objects from Carla word map
+    # Get objects from Carla world map
     env_objects = carla_world.get_environment_objects(carla.CityObjectLabel.Static)
     #env_objects.extend(carla_world.get_environment_objects(carla.CityObjectLabel.Dynamic))
     env_objects.extend(carla_world.get_environment_objects(carla.CityObjectLabel.Poles))

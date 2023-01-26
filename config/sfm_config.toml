@@ -2,7 +2,7 @@ max_speed_multiplier = 1.3
 use_ped_radius = false
 
 [forces]
-goal_attractive_force = true
+acceleration_force = true
 pedestrian_force = true
 border_force = true
 static_obstacle_force = true
@@ -14,7 +14,7 @@ space_repulsive_force = false
 two_phi = 200
 out_of_view_factor = 0.5
 
-[goal_force]
+[acceleration_force]
 tau = 0.5
 
 [ped_ped_potential]

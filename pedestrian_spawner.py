@@ -6,7 +6,7 @@ import numpy as np
 
 import stateutils
 from path_planner import PedPathPlanner, GraphType
-from ped_mode_state_machine import PedMode, PedModeStateMachine
+from ped_mode_manager import PedMode, PedModeManager
 
 
 class PedSpawnManager:
@@ -220,8 +220,8 @@ class PedSpawner:
         :param radius:
         :return: initial pedestrian state and remaining waypoints
         """
-        ped_mode = PedModeStateMachine(name, self.target_speed, self.initial_mode, self.crossing_speed_factor,
-                                       self.crossing_safety_margin)
+        ped_mode = PedModeManager(name, self.target_speed, self.initial_mode, self.crossing_speed_factor,
+                                  self.crossing_safety_margin)
         ped_state = (name, carla_id, self.spawn_location, self.velocity, self.first_waypoint, ped_mode,
                      radius, self.target_speed)
 

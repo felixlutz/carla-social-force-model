@@ -10,7 +10,7 @@ from libcarla.command import SpawnActor
 
 
 def load_config():
-    with open('config/scenarios/sidewalk_scenario_config.toml', mode='rb') as fp:
+    with open('../config/scenarios/sidewalk_scenario_config.toml', mode='rb') as fp:
         config = tomli.load(fp)
     return config
 

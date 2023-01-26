@@ -2,7 +2,7 @@ import numpy as np
 
 import forces
 from check_traffic import check_traffic
-from ped_mode_state_machine import PedMode
+from ped_mode_manager import PedMode
 from pedestrian_state import PedState
 from stateutils import cap_velocity
 
@@ -35,17 +35,17 @@ class PedestrianSimulation:
 
         # initialize social forces according to config
         if activated_forces.get('goal_attractive_force', False):
-            force_dict['goal_attractive_force'] = forces.GoalAttractiveForce(self.step_length, self.sfm_config)
+            force_dict['acceleration_force'] = forces.AccelerationForce(self.step_length, self.sfm_config)
         if activated_forces.get('pedestrian_force', False):
             force_dict['pedestrian_force'] = forces.PedestrianForce(self.step_length, self.sfm_config)
         if activated_forces.get('border_force', False):
             force_dict['border_force'] = forces.BorderForce(self.step_length, self.sfm_config, self.borders,
                                                             self.section_info)
         if activated_forces.get('static_obstacle_force', False):
-            force_dict['static_obstacle_force'] = forces.ObstacleEvasionForce(self.step_length, self.sfm_config)
+            force_dict['static_obstacle_force'] = forces.ObstacleForce(self.step_length, self.sfm_config)
             force_dict['static_obstacle_force'].update_obstacles(self.static_obstacles)
         if activated_forces.get('dynamic_obstacle_force', False):
-            force_dict['dynamic_obstacle_force'] = forces.ObstacleEvasionForce(self.step_length, self.sfm_config, True)
+            force_dict['dynamic_obstacle_force'] = forces.ObstacleForce(self.step_length, self.sfm_config, True)
         if activated_forces.get('ped_repulsive_force', False):
             force_dict['ped_repulsive_force'] = forces.PedRepulsiveForce(self.step_length, self.sfm_config)
         if activated_forces.get('space_repulsive_force', False):

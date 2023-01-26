@@ -9,7 +9,7 @@ class PedMode(IntEnum):
     CHECKING_TRAFFIC = 4
 
 
-class PedModeStateMachine:
+class PedModeManager:
     """
     This class represents a simple finite state machine that controls the transitions between the different pedestrian
     modes (e.g., waiting, walking on sidewalk, crossing road, ...).

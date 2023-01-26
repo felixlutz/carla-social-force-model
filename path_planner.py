@@ -500,60 +500,6 @@ class PedPathPlanner:
                 entry_waypoint=entry_wp, exit_waypoint=exit_wp,
                 intersection=intersection, type=edge_type)
 
-    # def _generate_jaywalking_graph_edges(self):
-    #     """Generate jaywalking edges and add them directly to the routing graph"""
-    #
-    #     topology_waypoints = self._get_all_waypoints_from_topology(self.ped_topology)
-    #     topology_xyz = self._get_all_xyz_nodes_from_topology(self.ped_topology)
-    #
-    #     # search for an opposing waypoint on the other side of the road for every waypoint in the pedestrian topology
-    #     for wp, xyz in zip(topology_waypoints, topology_xyz):
-    #         if wp.lane_type is not carla.LaneType.Sidewalk:
-    #             continue
-    #
-    #         opposite_waypoint = None
-    #         lane_id_sign = np.sign(wp.lane_id)
-    #
-    #         # Check for sidewalk lane type until there are no waypoints by going left
-    #         left_lane = wp.get_left_lane()
-    #         while left_lane and not opposite_waypoint:
-    #             if left_lane.lane_type == carla.LaneType.Sidewalk:
-    #                 opposite_waypoint = left_lane
-    #
-    #             # the direction of the lanes change when crossing the mid_line (= sign change of lane_id) and
-    #             # therefore left and right also changes
-    #             if np.sign(left_lane.lane_id) == lane_id_sign:
-    #                 left_lane = left_lane.get_left_lane()
-    #             else:
-    #                 left_lane = left_lane.get_right_lane()
-    #
-    #         # Check for sidewalk lane type until there are no waypoints by going right
-    #         right_lane = wp.get_right_lane()
-    #         while right_lane and not opposite_waypoint:
-    #             if right_lane.lane_type == carla.LaneType.Sidewalk:
-    #                 opposite_waypoint = right_lane
-    #
-    #             # the direction of the lanes change when crossing the mid_line (= sign change of lane_id) and
-    #             # therefore left and right also changes
-    #             if np.sign(right_lane.lane_id) == lane_id_sign:
-    #                 right_lane = right_lane.get_right_lane()
-    #             else:
-    #                 right_lane = right_lane.get_left_lane()
-    #
-    #         # if opposite waypoint exists, add a jaywalking edge across the road to the graph
-    #         if opposite_waypoint:
-    #             current_id = self.id_map[xyz]
-    #             opposite_id = self._find_closest_node_id(opposite_waypoint.transform.location)
-    #             if opposite_id:
-    #                 exit_wp = self.graph.nodes[opposite_id]['waypoint']
-    #                 distance = wp.transform.location.distance(exit_wp.transform.location)
-    #
-    #                 self.graph.add_edge(
-    #                     current_id, opposite_id,
-    #                     length=distance * self.jaywalking_weight_factor,
-    #                     entry_waypoint=wp, exit_waypoint=exit_wp,
-    #                     intersection=wp.is_junction, type=EdgeType.JAYWALKING)
-
     def _generate_jaywalking_edges(self):
         """Generate and return jaywalking edges (+ edges from sidewalk center to sidewalk border)"""
 

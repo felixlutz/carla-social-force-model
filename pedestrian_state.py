@@ -1,7 +1,7 @@
 import numpy as np
 
 import stateutils
-from ped_mode_state_machine import PedMode
+from ped_mode_manager import PedMode
 
 
 class PedState:

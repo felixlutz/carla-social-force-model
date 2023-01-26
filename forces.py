@@ -5,7 +5,7 @@ from itertools import compress
 import numpy as np
 
 import stateutils
-from ped_mode_state_machine import PedMode
+from ped_mode_manager import PedMode
 from potentials import PedPedPotential, PedSpacePotential
 from fieldofview import FieldOfView
 
@@ -34,9 +34,9 @@ class Force(ABC):
         return force
 
 
-class GoalAttractiveForce(Force):
+class AccelerationForce(Force):
     """
-    Goal attractive force based on the original paper "Social force model for pedestrian dynamics"
+    Acceleration force based on the original paper "Social force model for pedestrian dynamics"
     from Helbing and Molnár (1995)
     """
 
@@ -236,7 +236,7 @@ class BorderForce(Force):
         return force
 
 
-class ObstacleEvasionForce(Force):
+class ObstacleForce(Force):
     """
     Calculates the social force between pedestrians and obstacles based on the pedestrian interaction force of the paper
     "Experimental study of the behavioural mechanisms underlying self-organization in human crowds" form Moussaïd
