@@ -261,7 +261,7 @@ if __name__ == '__main__':
     argparser.add_argument('--output',
                            default='output',
                            type=str,
-                           help='path for output plot or animation')
+                           help='path for output CSV files')
     argparser.add_argument('--debug', action='store_true', help='enable debug messages')
     arguments = argparser.parse_args()
 

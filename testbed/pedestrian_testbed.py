@@ -14,29 +14,11 @@ def load_config():
         config = tomli.load(fp)
     return config
 
-
-def convert_coordinates(spawn_coordinates):
-    """
-    Converts SUMO coordinates to Carla coordinated by applying a map offset and inverting the y-axis.
-    :param spawn_coordinates:
-    :return:
-    """
-    offset_x = 0.06
-    offset_y = 328.61
-    map_offset = [offset_x, offset_y, 0.0]
-
-    new_coordinates = spawn_coordinates - map_offset
-    new_coordinates[1] *= -1
-
-    return new_coordinates
-
-
 def main():
     config = load_config()
 
     map_name = config['map']['map_name']
     map_path = config['map']['map_path']
-    sumo_coordinates = config['map']['sumo_coordinates']
     ped_spawner = config['walker']['ped_spawner']
     ped_seed = config.get('walker').get('pedestrian_seed', 2000)
     spectator_focus = config.get('walker').get('spectator_focus')
@@ -97,10 +79,6 @@ def main():
             destination = np.array(pedestrian['destination'])
 
             spawn_point = carla.Transform()
-
-            if sumo_coordinates:
-                spawn_location = convert_coordinates(spawn_location)
-                destination = convert_coordinates(destination)
 
             spawn_point.location = carla.Location(spawn_location[0], spawn_location[1], spawn_location[2])
 

@@ -2,7 +2,6 @@
 map_name = 'Town01_Opt'
 map_path = 'Carla/Maps/'
 draw_obstacles = false
-sumo_coordinates = false
 spectator_location = [10.0, 10.0, 10]
 spectator_rotation = [-40.0, -135.0, 0.0]
 

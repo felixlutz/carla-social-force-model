@@ -134,21 +134,3 @@ def minmax(vecs: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.nda
     x_max = np.max(vecs['loc'][:, 0])
     y_max = np.max(vecs['loc'][:, 1])
     return x_min, y_min, x_max, y_max
-
-
-def convert_coordinates(coordinates, sumo_offset):
-    """
-    Converts SUMO coordinates to Carla coordinated by applying a map offset and inverting the y-axis.
-    :param coordinates:
-    :param sumo_offset:
-    :return:
-    """
-
-    if len(coordinates) == 2:
-        new_coordinates = coordinates - sumo_offset[0:2]
-    else:
-        new_coordinates = coordinates - sumo_offset
-
-    new_coordinates[1] *= -1
-
-    return new_coordinates

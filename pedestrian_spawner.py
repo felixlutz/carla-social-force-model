@@ -58,8 +58,6 @@ class PedSpawnManager:
         Extracts pedestrian spawner information from the configuration file and converts coordinates if necessary.
         """
 
-        sumo_coordinates = self.scenario_config.get('map', {}).get('sumo_coordinates', False)
-        sumo_offset = self.scenario_config.get('map', {}).get('sumo_offset')
         ped_spawner_config = self.scenario_config.get('walker', {}).get('ped_spawner')
 
         ped_spawners = []
@@ -93,14 +91,6 @@ class PedSpawnManager:
                 spawn_interval = spawn_point.get('spawn_interval', 1.0)
                 crossing_speed_factor = spawn_point.get('crossing_speed_factor', 1.5)
                 crossing_safety_margin = spawn_point.get('crossing_safety_margin', 1.5)
-
-                # convert coordinates if they are from SUMO simulator
-                if sumo_coordinates and sumo_offset is not None:
-                    spawn_location = stateutils.convert_coordinates(spawn_location, sumo_offset)
-                    if waypoints.ndim > 1:
-                        np.apply_along_axis(stateutils.convert_coordinates, 1, waypoints)
-                    else:
-                        waypoints = stateutils.convert_coordinates(waypoints, sumo_offset)
 
                 ped_spawner = PedSpawner(spawn_location, waypoints, crossing_road_bools, speed, blueprint, quantity,
                                          spawn_time, spawn_interval, crossing_speed_factor, crossing_safety_margin)

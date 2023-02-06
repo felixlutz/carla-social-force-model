@@ -4,7 +4,6 @@ scenario_name = 'jaywalking'
 map_name = 'Town01_Opt'
 map_path = 'Carla/Maps/'
 draw_obstacles = false
-sumo_coordinates = false
 spectator_location = [75, 171.9, 10.0]
 spectator_rotation = [-40.0, 0.0, 0.0]
 

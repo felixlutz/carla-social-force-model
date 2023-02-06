@@ -2,7 +2,6 @@
 map_name = 'Town10HD_Opt'
 map_path = 'Carla/Maps/'
 draw_obstacles = false
-sumo_coordinates = false
 unload_props = false
 spectator_location = [115.0, 62.0, 29.0]
 spectator_rotation = [-70.0, 180.0, 0.0]
@@ -17,8 +16,8 @@ draw_bounding_boxes = false
 ai_controller = false
 
 [[walker.ped_spawner]]
-spawn_location = [92.0, 91.0, 1.0]
-generate_route = 'JAYWALKING'
+spawn_location = [93.0, 88.0, 1.0]
+generate_route = 'NO_JAYWALKING'
 destination = [118.0, 67.0, 0.0]
 speed = 1.0
 quantity = 1

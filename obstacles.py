@@ -8,8 +8,6 @@ import time
 import carla
 import numpy as np
 
-from stateutils import convert_coordinates
-
 
 def extract_sidewalk(carla_map, scenario_config):
     """
@@ -334,8 +332,6 @@ def get_dynamic_obstacles(carla_world, scenario_config):
 def extract_borders_from_config(scenario_config):
     """Extract manually defined (straight) obstacle borders from scenario configuration"""
 
-    sumo_coordinates = scenario_config['map']['sumo_coordinates']
-    sumo_offset = scenario_config.get('map').get('sumo_offset')
     obstacle_config = scenario_config.get('obstacles')
 
     obstacles = []
@@ -348,10 +344,6 @@ def extract_borders_from_config(scenario_config):
         for border in borders:
             start_point = np.array(border['start_point'])
             end_point = np.array(border['end_point'])
-
-            if sumo_coordinates:
-                start_point = convert_coordinates(start_point, sumo_offset)
-                end_point = convert_coordinates(end_point, sumo_offset)
 
             samples = int(np.linalg.norm(end_point - start_point) / obstacle_resolution)
 
