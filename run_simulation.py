@@ -53,31 +53,18 @@ class SimulationRunner:
         self.ped_spawn_manager.tick(sim_time)
         self.vehicle_spawn_manager.tick(sim_time)
 
-        # get all pedestrians that arrived at their next waypoint and either assign a new waypoint or despawn
-        # them if they reached their final destination
-        arrived_peds = self.ped_sim.get_arrived_peds(self.waypoint_threshold)
-        for ped_name in arrived_peds:
-            remaining_waypoints = self.waypoint_dict[ped_name]
-
-            if remaining_waypoints:
-                next_waypoint = remaining_waypoints.pop(0)
-                self.ped_sim.peds.update_next_waypoint(ped_name, next_waypoint)
-                self.waypoint_dict[ped_name] = remaining_waypoints
-
-            elif not remaining_waypoints and self.despawn_on_arrival:
-                self.ped_sim.destroy_pedestrian(ped_name)
-                self.carla_sim.destroy_actor(self.walker_dict[ped_name])
-                self.walker_dict.pop(ped_name)
-                self.waypoint_dict.pop(ped_name)
-                logging.info(f'Despawned pedestrian {ped_name}.')
-
         # Teleport vehicles that are not controlled by the traffic manager or agent to the next point on their
         # predefined trajectory
-        for veh_id, values in self.vehicle_trajectory_dict.items():
+        for veh_id, values in list(self.vehicle_trajectory_dict.items()):
             if values['trajectory']:
                 next_loc = values['trajectory'].pop(0)
                 next_speed = values['speeds'].pop(0)
                 self.carla_sim.update_actor(veh_id, next_loc, next_speed)
+            elif not values['trajectory']:
+                self.carla_sim.destroy_actor(veh_id)
+                self.vehicle_trajectory_dict.pop(veh_id)
+                self.vehicle_list.remove(veh_id)
+                logging.info(f'Despawned vehicle {veh_id}.')
 
         # Apply control to all vehicles controlled by an agent
         for veh_id, agent in self.vehicle_agent_dict.items():
@@ -88,6 +75,7 @@ class SimulationRunner:
         # Tick CARLA simulation and receive new location and velocity of all pedestrians and dynamic obstacles
         # (vehicles) and propagate the information to the pedestrian simulation
         self.carla_sim.tick()
+        all_actors = self.carla_sim.world.get_actors()
         for actor_id in self.walker_dict.values():
             walker = self.carla_sim.get_actor(actor_id)
             carla_location = walker.get_location()
@@ -124,6 +112,24 @@ class SimulationRunner:
                 direction = carla.Vector3D(new_velocity[0], new_velocity[1], new_velocity[2])
 
                 self.carla_sim.set_ped_velocity(walker_id, direction, speed)
+
+        # get all pedestrians that arrived at their next waypoint and either assign a new waypoint or despawn
+        # them if they reached their final destination
+        arrived_peds = self.ped_sim.get_arrived_peds(self.waypoint_threshold)
+        for ped_name in arrived_peds:
+            remaining_waypoints = self.waypoint_dict[ped_name]
+
+            if remaining_waypoints:
+                next_waypoint = remaining_waypoints.pop(0)
+                self.ped_sim.peds.update_next_waypoint(ped_name, next_waypoint)
+                self.waypoint_dict[ped_name] = remaining_waypoints
+
+            elif not remaining_waypoints and self.despawn_on_arrival:
+                self.ped_sim.destroy_pedestrian(ped_name)
+                self.carla_sim.destroy_actor(self.walker_dict[ped_name])
+                self.walker_dict.pop(ped_name)
+                self.waypoint_dict.pop(ped_name)
+                logging.info(f'Despawned pedestrian {ped_name}.')
 
     def close(self):
         """

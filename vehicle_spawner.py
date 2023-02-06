@@ -146,7 +146,7 @@ class VehicleSpawnManager:
                 self.trajectory_dict[actor_id]['trajectory'] = carla_trajectory
                 self.trajectory_dict[actor_id]['speeds'] = vehicle_spawner.speeds
 
-            logging.info(f'Spawned {vehicle.type_id}.')
+            logging.info(f'Spawned vehicle {actor_id} of type {vehicle.type_id}.')
 
 
 class VehicleSpawner:

@@ -34,7 +34,7 @@ class PedestrianSimulation:
         force_dict = {}
 
         # initialize social forces according to config
-        if activated_forces.get('goal_attractive_force', False):
+        if activated_forces.get('acceleration_force', False):
             force_dict['acceleration_force'] = forces.AccelerationForce(self.step_length, self.sfm_config)
         if activated_forces.get('pedestrian_force', False):
             force_dict['pedestrian_force'] = forces.PedestrianForce(self.step_length, self.sfm_config)
