@@ -50,9 +50,9 @@ class AccelerationForce(Force):
         target_speed = np.expand_dims(peds.target_speed(), -1)
         desired_direction = peds.desired_directions()
         velocity = peds.vel()
-        F_0 = 1.0 / tau * (target_speed * desired_direction - velocity)
+        f_0 = 1.0 / tau * (target_speed * desired_direction - velocity)
 
-        return F_0
+        return f_0
 
 
 class PedRepulsiveForce(Force):

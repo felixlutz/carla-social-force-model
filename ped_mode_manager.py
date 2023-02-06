@@ -2,7 +2,7 @@ from enum import IntEnum
 
 
 class PedMode(IntEnum):
-    WAITING = 0
+    IDLE = 0
     WALKING_SIDEWALK = 1
     CROSSING_ROAD = 2
     ROAD_TO_SIDEWALK = 3
@@ -30,7 +30,7 @@ class PedModeManager:
     def tick(self, sim_time):
         """Called during each simulation step."""
         self.sim_time = sim_time
-        if self.current_mode == PedMode.WAITING:
+        if self.current_mode == PedMode.IDLE:
             if self.next_mode_time <= sim_time:
                 self._activate_mode(PedMode.WALKING_SIDEWALK)
 
@@ -49,7 +49,7 @@ class PedModeManager:
     def _activate_mode(self, mode):
         """Actually internally activate new mode for pedestrian."""
 
-        if mode == PedMode.WAITING:
+        if mode == PedMode.IDLE:
             self.target_speed = 0
             self.next_mode_time = self.sim_time + self.waiting_time
             self.current_mode = mode

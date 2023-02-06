@@ -182,6 +182,7 @@ class PedPathPlanner:
         - exit (carla.Waypoint): waypoint of exit point of edge
         - exit_xyz (tuple): (x,y,z) of exit point of edge
         - length (float): length of the edge in [m]
+        - edge_type (EdgeType): type of edge (sidewalk, crosswalk, etc.)
         """
 
         carla_topology = self.carla_map.get_topology()
@@ -414,6 +415,7 @@ class PedPathPlanner:
         - exit (carla.Waypoint): waypoint of exit point of edge
         - exit_xyz (tuple): (x,y,z) of exit point of edge
         - length (float): length of the edge in [m]
+        - edge_type (EdgeType): type of edge (sidewalk, crosswalk, etc.)
         """
 
         waypoint_locs = [w.transform.location for w in waypoint_list]
@@ -458,7 +460,6 @@ class PedPathPlanner:
                 entry_vector: unit vector along tangent at entry point
                 exit_vector: unit vector along tangent at exit point
                 net_vector: unit vector of the chord from entry to exit
-                intersection: boolean indicating if the edge belongs to an  intersection
         - id_map (dictionary): mapping from (x,y,z) to node id
         - road_id_to_edge (dictionary): map from road id to edge in the graph
         """
@@ -473,7 +474,6 @@ class PedPathPlanner:
             if edge_type is EdgeType.JAYWALKING or edge_type is EdgeType.JAYWALKING_JUNCTION:
                 length *= self.jaywalking_weight_factor
 
-            intersection = entry_wp.is_junction
             road_id, section_id, lane_id = entry_wp.road_id, entry_wp.section_id, entry_wp.lane_id
 
             for xyz, waypoint in zip([entry_xyz, exit_xyz], [entry_wp, exit_wp]):
@@ -498,7 +498,7 @@ class PedPathPlanner:
                 n1, n2,
                 length=length,
                 entry_waypoint=entry_wp, exit_waypoint=exit_wp,
-                intersection=intersection, type=edge_type)
+                type=edge_type)
 
     def _generate_jaywalking_edges(self):
         """Generate and return jaywalking edges (+ edges from sidewalk center to sidewalk border)"""

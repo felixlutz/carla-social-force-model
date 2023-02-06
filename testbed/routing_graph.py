@@ -70,7 +70,7 @@ def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
         '--scenario-config',
-        default='config/scenarios/vehicle2_scenario_config.toml',
+        default='config/scenarios/routing2_scenario_config.toml',
         type=str,
         help='scenario configuration file')
     argparser.add_argument(
@@ -134,23 +134,29 @@ def main():
         while True:
 
             for n1, n2, data in graph.edges.data():
-                draw_waypoint_union(debug, data['entry_waypoint'], data['exit_waypoint'], cyan, lt=args.tick_time)
-                # if data['type'] in [EdgeType.SIDEWALK, EdgeType.CROSSWALK]:
-                #     draw_waypoint_union(debug, data['entry_waypoint'], data['exit_waypoint'], cyan, lt=args.tick_time)
-                # elif data['type'] == EdgeType.JAYWALKING_JUNCTION:
-                #     draw_waypoint_union(debug, data['entry_waypoint'], data['exit_waypoint'], red, lt=args.tick_time)
-                # elif data['type'] == EdgeType.JAYWALKING:
-                #     draw_waypoint_union(debug, data['entry_waypoint'], data['exit_waypoint'], green, lt=args.tick_time)
+                # draw_waypoint_union(debug, data['entry_waypoint'], data['exit_waypoint'], cyan, lt=args.tick_time)
 
-            for route in routes:
-                for i in range(len(route)-1):
-                    crossing_road = route[i+1][1]
-                    color = red
-                    # if crossing_road:
-                    #     color = green
-                    # else:
-                    #     color = red
-                    draw_loc_connection(debug, route[i][0], route[i+1][0], color=color, lt=args.tick_time)
+                if data['type'] == EdgeType.JAYWALKING_JUNCTION:
+                    draw_waypoint_union(debug, data['entry_waypoint'], data['exit_waypoint'], yellow, lt=args.tick_time)
+                elif data['type'] == EdgeType.SIDEWALK_TO_ROAD:
+                    draw_waypoint_union(debug, data['entry_waypoint'], data['exit_waypoint'], green, lt=args.tick_time)
+                elif data['type'] == EdgeType.JAYWALKING:
+                    draw_waypoint_union(debug, data['entry_waypoint'], data['exit_waypoint'], red, lt=args.tick_time)
+                elif data['type'] in [EdgeType.SIDEWALK, EdgeType.CROSSWALK]:
+                    draw_waypoint_union(debug, data['entry_waypoint'], data['exit_waypoint'], cyan, lt=args.tick_time)
+
+            # for route in routes:
+            #     for i in range(len(route)-1):
+            #         crossing_road = route[i+1][1]
+            #         color = red
+            #         # if crossing_road:
+            #         #     color = green
+            #         # else:
+            #         #     color = red
+            #         draw_loc_connection(debug, route[i][0], route[i+1][0], color=color, lt=args.tick_time)
+            #
+            #     draw_locations(debug, [route[0][0]], color=green, lt=args.tick_time)
+            #     draw_locations(debug, [route[len(route) - 1][0]], color=black, lt=args.tick_time)
 
             time.sleep(args.tick_time)
 
