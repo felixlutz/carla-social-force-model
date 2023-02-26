@@ -123,14 +123,7 @@ def angle_diff_2d(vecs1, vecs2) -> np.ndarray:
         if angle_diffs > np.pi:
             angle_diffs -= 2 * np.pi
         elif angle_diffs < - np.pi:
-            angle_diffs -= 2 * np.pi
+            angle_diffs += 2 * np.pi
 
     return angle_diffs
 
-
-def minmax(vecs: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    x_min = np.min(vecs['loc'][:, 0])
-    y_min = np.min(vecs['loc'][:, 1])
-    x_max = np.max(vecs['loc'][:, 0])
-    y_max = np.max(vecs['loc'][:, 1])
-    return x_min, y_min, x_max, y_max

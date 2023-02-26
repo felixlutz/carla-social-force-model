@@ -126,15 +126,6 @@ class PedestrianSimulation:
     def get_new_velocities(self):
         return self.new_velocities
 
-    def get_borders(self):
-        return self.borders
-
-    def get_static_obstacles(self):
-        return self.static_obstacles
-
-    def get_dynamic_obstacles(self):
-        return self.dyn_obstacles
-
     def record_dyn_obstacle_states(self, sim_time):
         obstacle_loc, _ = zip(*self.dyn_obstacles)
         veh_state_dtype = [('id', 'i4'), ('loc', 'f8', (2,)), ('heading', 'f8'), ('vel', 'f8', (2,)),

@@ -153,6 +153,8 @@ class SimulationRunner:
             output_gen = OutputGenerator(self.ped_sim, self.output_path, scenario_name)
             output_gen.generate_ped_csv()
             output_gen.generate_veh_csv()
+            output_gen.generate_borders_csv()
+            output_gen.generate_obstacles_csv()
 
 
 def simulation_loop(args):

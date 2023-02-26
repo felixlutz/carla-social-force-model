@@ -98,7 +98,10 @@ class PedState:
         return stateutils.desired_directions(self.state)
 
     def record_current_state(self, sim_time):
-        self.all_states[sim_time] = self.state.copy()
+        last_ped_state = self.state.copy()
+        for ped in last_ped_state:
+            ped['mode'] = ped['mode'].current_mode
+        self.all_states[sim_time] = last_ped_state
 
     def get_all_states(self) -> dict:
         return self.all_states
