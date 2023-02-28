@@ -24,6 +24,7 @@ class PedSpawnManager:
         self.variate_speed = scenario_config.get('walker', {}).get('variate_speed', 0.0)
         waypoint_distance = scenario_config.get('walker', {}).get('waypoint_distance', 20)
         jaywalking_weight = scenario_config.get('walker', {}).get('jaywalking_weight', 2)
+        amount_random_peds = scenario_config.get('walker', {}).get('random_pedestrians', 0)
 
         # set pedestrian seed
         self.carla_sim.world.set_pedestrians_seed(self.ped_seed)
@@ -33,6 +34,10 @@ class PedSpawnManager:
 
         # get pedestrian spawners from scenario config
         self.ped_spawners = self._extract_ped_info()
+
+        for i in range(amount_random_peds):
+            random_ped_spawner = self._generate_random_ped_spawner()
+            self.ped_spawners.append(random_ped_spawner)
 
         self.ped_index = 0
         self.walker_dict = {}
@@ -97,6 +102,26 @@ class PedSpawnManager:
                 ped_spawners.append(ped_spawner)
 
         return ped_spawners
+
+    def _generate_random_ped_spawner(self, speed=1.0, blueprint=None, quantity=1, spawn_time=0.0, spawn_interval=1.0,
+                                     crossing_speed_factor=1.5, crossing_safety_margin=1.5,
+                                     graph_type=GraphType.JAYWALKING_AT_JUNCTION):
+        """
+        Generate pedestrian spawner with random spawn position and random destination
+        """
+
+        spawn_point = self.carla_sim.world.get_random_location_from_navigation()
+        destination = self.carla_sim.world.get_random_location_from_navigation()
+
+        waypoint_tuples = self.path_planner.generate_route(spawn_point, destination, graph_type, with_origin=True)
+        np_spawn_loc = waypoint_tuples.pop(0)[0]
+        waypoints = np.array([w[0] for w in waypoint_tuples])
+        crossing_road_bools = [w[1] for w in waypoint_tuples]
+
+        ped_spawner = PedSpawner(np_spawn_loc, waypoints, crossing_road_bools, speed, blueprint, quantity,
+                                 spawn_time, spawn_interval, crossing_speed_factor, crossing_safety_margin)
+
+        return ped_spawner
 
     def _spawn_pedestrian(self, ped_spawner):
         """
