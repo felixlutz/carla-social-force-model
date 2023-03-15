@@ -14,7 +14,6 @@ waypoint_threshold = 1
 waypoint_distance = 5
 jaywalking_weight = 1
 draw_bounding_boxes = false
-ai_controller = false
 
 [[walker.ped_spawner]]
 spawn_location = [84.3, 171.9, 1.0]
@@ -42,20 +41,18 @@ use_traffic_manager = false
 quantity = 1
 spawn_time = 0.0
 spawn_interval = 5.0
-ignore_walkers_percentage = 0
 ignore_lights_percentage = 100
 
 [[vehicle.vehicle_spawner]]
 spawn_point = 21
 destination = 102
-blueprint = 'vehicle.tesla.model3'
+blueprint = 'vehicle.toyota.prius'
 speed_reduction_factor = 0
 auto_pilot = true
 use_traffic_manager = false
 quantity = 1
 spawn_time = 0.0
 spawn_interval = 5.0
-ignore_walkers_percentage = 100
 ignore_lights_percentage = 100
 
 [obstacles]

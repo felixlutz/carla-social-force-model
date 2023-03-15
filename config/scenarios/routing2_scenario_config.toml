@@ -13,13 +13,12 @@ waypoint_threshold = 2
 waypoint_distance = 5
 jaywalking_weight = 2
 draw_bounding_boxes = false
-ai_controller = false
 
 [[walker.ped_spawner]]
 spawn_location = [93.0, 88.0, 1.0]
 generate_route = 'NO_JAYWALKING'
 destination = [118.0, 67.0, 0.0]
-speed = 1.0
+speed = 1.5
 quantity = 1
 spawn_time = 0.0
 

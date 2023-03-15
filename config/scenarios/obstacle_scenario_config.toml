@@ -3,8 +3,8 @@ map_name = 'Town01_Opt'
 map_path = 'Carla/Maps/'
 draw_obstacles = true
 unload_props = false
-spectator_location = [258.9, 190.9, 10.0]
-spectator_rotation = [-90.0, 0.0, 0.0]
+spectator_location = [243.9, 190.9, 25.0]
+spectator_rotation = [-89.0, 90.0, 0.0]
 
 [walker]
 pedestrian_seed = 2020
@@ -13,7 +13,6 @@ waypoint_threshold = 2
 waypoint_distance = 10
 jaywalking_weight = 2
 draw_bounding_boxes = false
-ai_controller = true
 
 [[walker.ped_spawner]]
 spawn_location = [258.9, 190.9, 1.0]

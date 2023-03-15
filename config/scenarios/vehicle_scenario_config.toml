@@ -13,7 +13,6 @@ waypoint_threshold = 2
 waypoint_distance = 5
 jaywalking_weight = 1
 draw_bounding_boxes = false
-ai_controller = true
 
 [[walker.ped_spawner]]
 spawn_location = [-122.5, -12.0, 1.0]

@@ -7,25 +7,9 @@ pedestrian_force = true
 border_force = true
 static_obstacle_force = true
 dynamic_obstacle_force = true
-ped_repulsive_force = false
-space_repulsive_force = false
-
-[field_of_view]
-two_phi = 200
-out_of_view_factor = 0.5
 
 [acceleration_force]
 tau = 0.5
-
-[ped_ped_potential]
-v0 = 2.1
-sigma = 0.5
-grad_delta = 1e-3
-
-[ped_space_potential]
-u0 = 10.0
-r = 0.2
-grad_delta=1e-3
 
 [pedestrian_force]
 lambda = 2.0 # 2.0 +- 0.3
@@ -40,19 +24,19 @@ a = 6.0
 b = 0.3
 
 [static_obstacle_force]
-lambda = 2.3 # 2.0 +- 0.3
-A = 15 # 4.5 +- 0.3
-gamma = 0.4 # 0.35 +- 0.01
-n = 2.1 # 2.0 +- 0.1
-n_prime = 3.0 # 3.0 +- 0.7
+lambda = 2.3
+A = 15
+gamma = 0.4
+n = 2.1
+n_prime = 3.0
 epsilon = 0.005
 perception_threshold = 20
 
 [dynamic_obstacle_force]
-lambda = 2.0 # 2.0 +- 0.3
-A = 50 # 4.5 +- 0.3
-gamma = 0.4 # 0.35 +- 0.01
-n = 1.0 # 2.0 +- 0.1
-n_prime = 3.0 # 3.0 +- 0.7
+lambda = 2.0
+A = 50
+gamma = 0.4
+n = 1.0
+n_prime = 3.0
 epsilon = 0.005
 perception_threshold = 50

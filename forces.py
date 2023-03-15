@@ -6,8 +6,6 @@ import numpy as np
 
 import stateutils
 from ped_mode_manager import PedMode
-from potentials import PedPedPotential, PedSpacePotential
-from fieldofview import FieldOfView
 
 
 class Force(ABC):
@@ -53,61 +51,6 @@ class AccelerationForce(Force):
         f_0 = 1.0 / tau * (target_speed * desired_direction - velocity)
 
         return f_0
-
-
-class PedRepulsiveForce(Force):
-    """
-    Ped to ped repulsive force based on the original paper "Social force model for pedestrian dynamics"
-    from Helbing and Molnár (1995)
-    """
-
-    def __init__(self, step_length, sfm_config):
-        super().__init__(step_length, sfm_config)
-
-        self.ped_ped_config = self.sfm_config['ped_ped_potential']
-        self.V = PedPedPotential(self.step_length, self.ped_ped_config['v0'], self.ped_ped_config['sigma'])
-
-        self.fov_config = self.sfm_config['field_of_view']
-        self.fov = FieldOfView(self.fov_config['two_phi'], self.fov_config['out_of_view_factor'])
-
-    def _get_force(self, peds):
-        f_ab = -1.0 * self.V.grad_r_ab(peds.state)
-
-        w = np.expand_dims(self.fov(peds.desired_directions(), -f_ab), -1)
-        F_ab = w * f_ab
-        return np.sum(F_ab, axis=1)
-
-
-class SpaceRepulsiveForce(Force):
-    """
-    Obstacles to ped repulsive force based on the original paper "Social force model for pedestrian dynamics"
-    from Helbing and Molnár (1995)
-    """
-
-    def __init__(self, step_length, sfm_config, obstacles):
-        super().__init__(step_length, sfm_config)
-        self.obstacles = obstacles
-
-        if self.obstacles is not None:
-            self.ped_space_config = self.sfm_config['ped_space_potential']
-            self.U = PedSpacePotential(self.obstacles, self.ped_space_config['u0'], self.ped_space_config['r'])
-        else:
-            self.U = None
-
-    def _get_force(self, peds):
-        if self.U is None:
-            F_aB = np.zeros((peds.size(), 0, 3))
-        else:
-            F_aB = -1.0 * self.U.grad_r_aB(peds.state)
-            # append z=0 to force vectors to make them 3D
-            z_values = np.zeros(F_aB.shape[0:2])
-            F_aB = np.dstack((F_aB, z_values))
-
-            # deactivate obstacle force for pedestrians that are crossing the road
-            crossing_road = [m.current_mode in [PedMode.CROSSING_ROAD, PedMode.ROAD_TO_SIDEWALK] for m in peds.mode()]
-            F_aB[crossing_road] *= 0
-
-        return np.sum(F_aB, axis=1)
 
 
 class PedestrianForce(Force):

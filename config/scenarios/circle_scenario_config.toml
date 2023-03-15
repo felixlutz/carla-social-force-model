@@ -9,9 +9,7 @@ spectator_rotation = [-90.0, 0.0, 0.0]
 pedestrian_seed = 2020
 despawn_on_arrival = true
 waypoint_threshold = 1
-#spectator_focus = 'ped_4'
 draw_bounding_boxes = false
-ai_controller = false
 
 [[walker.ped_spawner]]
 spawn_location = [-37.00, 21.00, 1.00]
