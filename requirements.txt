@@ -1,0 +1,5 @@
+carla==0.9.13
+numpy==1.23.5
+tomli==2.0.1
+networkx==2.8.6
+Shapely==1.6.4.post2
