@@ -4,7 +4,7 @@ from typing import Tuple
 import numpy as np
 
 
-def desired_directions(state) -> np.ndarray:
+def desired_directions(state):
     """Given the current state and destination, compute desired direction."""
     destination_vectors = state['next_waypoint'][:, :2] - state['loc'][:, :2]
     directions, _ = normalize(destination_vectors)
@@ -15,7 +15,7 @@ def desired_directions(state) -> np.ndarray:
     return directions
 
 
-def cap_velocity(desired_velocity, max_velocity) -> np.ndarray:
+def cap_velocity(desired_velocity, max_velocity):
     """Scale down a desired velocity to its capped speed."""
     desired_speeds = np.linalg.norm(desired_velocity, axis=-1)
     desired_speeds[desired_speeds == 0.0] = 1.0
@@ -23,13 +23,13 @@ def cap_velocity(desired_velocity, max_velocity) -> np.ndarray:
     return desired_velocity * np.expand_dims(factor, -1)
 
 
-def speeds(state) -> np.ndarray:
+def speeds(state):
     """Return the speeds corresponding to a given state."""
     velocity = state['vel']
     return np.linalg.norm(velocity, axis=1)
 
 
-def all_diffs(array, remove_diagonal=True, keep_dims=True) -> np.ndarray:
+def all_diffs(array, remove_diagonal=True, keep_dims=True):
     """
     Calculate the differences of every element in the array with all other elements using broadcasting.
     :param array: input array
@@ -53,7 +53,7 @@ def all_diffs(array, remove_diagonal=True, keep_dims=True) -> np.ndarray:
     return diff_matrix
 
 
-def all_sums(array, remove_diagonal=True, keep_dims=True) -> np.ndarray:
+def all_sums(array, remove_diagonal=True, keep_dims=True):
     """
     Calculate the sums of every element in the array with all other elements using broadcasting.
     :param array: input array
@@ -75,7 +75,7 @@ def all_sums(array, remove_diagonal=True, keep_dims=True) -> np.ndarray:
     return sum_matrix
 
 
-def normalize(array, axis=-1) -> Tuple[np.ndarray, np.ndarray]:
+def normalize(array, axis=-1):
     """
     Normalize vectors in array along given axis.
     :param array: input array
@@ -92,7 +92,7 @@ def normalize(array, axis=-1) -> Tuple[np.ndarray, np.ndarray]:
     return normalized, norm_factors
 
 
-def angle_diff_2d(vecs1, vecs2) -> np.ndarray:
+def angle_diff_2d(vecs1, vecs2):
     """
     Calculate angle diffs between two arrays of vectors (only 2D)
     :param vecs1:

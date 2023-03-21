@@ -113,6 +113,7 @@ The simulation scenario can be defined and configured with a `scenario_config.to
 
 ```TOML
 scenario_name = 'example' # scenario name for output files
+step_length = 0.05        # length [s] of one simulation step (default = 0.05)
 
 # map configurations
 [map]

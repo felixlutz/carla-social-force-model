@@ -18,7 +18,7 @@ class Force(ABC):
         self.use_ped_radius = sfm_config.get('use_ped_radius', False)
 
     @abstractmethod
-    def _get_force(self, ped_state) -> np.ndarray:
+    def _get_force(self, ped_state):
         """
         Abstract class to get social forces
         return: an array of force vectors for each pedestrian

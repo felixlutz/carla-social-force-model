@@ -42,37 +42,37 @@ class PedState:
         """
         self.state = np.delete(self.state, np.where(self.state['name'] == ped_name), axis=0)
 
-    def size(self) -> int:
+    def size(self):
         return self.state.shape[0]
 
-    def name(self) -> np.ndarray:
+    def name(self):
         return self.state['name']
 
-    def walker_id(self) -> np.ndarray:
+    def walker_id(self):
         return self.state['id']
 
-    def loc(self) -> np.ndarray:
+    def loc(self):
         return self.state['loc']
 
-    def vel(self) -> np.ndarray:
+    def vel(self):
         return self.state['vel']
 
-    def next_waypoint(self) -> np.ndarray:
+    def next_waypoint(self):
         return self.state['next_waypoint']
 
-    def mode(self) -> np.ndarray:
+    def mode(self):
         return self.state['mode']
 
-    def radius(self) -> np.ndarray:
+    def radius(self):
         return self.state['radius']
 
-    def target_speed(self) -> np.ndarray:
+    def target_speed(self):
         return self.state['target_speed']
 
-    def max_speed(self) -> np.ndarray:
+    def max_speed(self):
         return self.target_speed() * self.max_speed_factor
 
-    def speeds(self) -> np.ndarray:
+    def speeds(self):
         """Return the speeds corresponding to a given state."""
         return stateutils.speeds(self.state)
 
@@ -94,7 +94,7 @@ class PedState:
     def apply_current_mode(self):
         self.state['target_speed'] = [mode.target_speed for mode in self.state['mode']]
 
-    def desired_directions(self) -> np.ndarray:
+    def desired_directions(self):
         return stateutils.desired_directions(self.state)
 
     def record_current_state(self, sim_time):
@@ -103,6 +103,6 @@ class PedState:
             ped['mode'] = ped['mode'].current_mode
         self.all_states[sim_time] = last_ped_state
 
-    def get_all_states(self) -> dict:
+    def get_all_states(self):
         return self.all_states
 
