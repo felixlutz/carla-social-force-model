@@ -1,6 +1,10 @@
-max_speed_multiplier = 1.3
-use_ped_radius = false
+# Configuration file for all parameters of the used Social Force Model
 
+max_speed_multiplier = 1.3          # multiplier that defines how much faster the maximum resulting speed calculated by
+                                    # the SFM is allowed to be compared to the individually defined target speed
+use_ped_radius = false              # consider pedestrian radius in social forces calculations
+
+# activate or deactivate different social forces
 [forces]
 acceleration_force = true
 pedestrian_force = true
@@ -8,35 +12,46 @@ border_force = true
 static_obstacle_force = true
 dynamic_obstacle_force = true
 
+# acceleration force parameters
 [acceleration_force]
-tau = 0.5
+tau = 0.5       # relaxation time within which the target velocity should be reached
 
+# pedestrian interaction force parameters
 [pedestrian_force]
-lambda = 2.0 # 2.0 +- 0.3
-A = 4.5 # 4.5 +- 0.3
-gamma = 0.35 # 0.35 +- 0.01
-n = 2.0 # 2.0 +- 0.1
-n_prime = 3.0 # 3.0 +- 0.7
-epsilon = 0.005
+lambda = 2.0    # factor influencing the weight between direction of relative motion and the interaction direction
+A = 4.5         # amplitude of the resulting social force
+gamma = 0.35    # parameter influencing how fast the resulting force decays with increasing distance
+n = 2.0         # parameter influencing the angular interaction range taken into account for the partial force
+                # responsible for the directional change
+n_prime = 3.0   # parameter influencing the angular interaction range taken into account for the partial force
+                # responsible for the deceleration
+epsilon = 0.005 # interaction angle offset creating a bias to either evade left or right
 
+# border force parameters
 [border_force]
-a = 6.0
-b = 0.3
+a = 6.0         # amplitude of the border force
+b = 0.3         # parameter influencing how fast the resulting force decays with increasing distance
 
+# static obstacle interaction force parameters
 [static_obstacle_force]
-lambda = 2.3
-A = 15
-gamma = 0.4
-n = 2.1
-n_prime = 3.0
-epsilon = 0.005
-perception_threshold = 20
+lambda = 2.3    # factor influencing the weight between direction of relative motion and the interaction direction
+A = 15          # amplitude of the resulting social force
+gamma = 0.4     # parameter influencing how fast the resulting force decays with increasing distance
+n = 2.1         # parameter influencing the angular interaction range taken into account for the partial force
+                # responsible for the directional change
+n_prime = 3.0   # parameter influencing the angular interaction range taken into account for the partial force
+                # responsible for the deceleration
+epsilon = 0.005 # interaction angle offset creating a bias to either evade left or right
+perception_threshold = 20   # threshold determining how close obstacles need to be in order to be considered by SFM
 
+# dynamic obstacle interaction force parameters
 [dynamic_obstacle_force]
-lambda = 2.0
-A = 50
-gamma = 0.4
-n = 1.0
-n_prime = 3.0
-epsilon = 0.005
-perception_threshold = 50
+lambda = 2.0    # factor influencing the weight between direction of relative motion and the interaction direction
+A = 50          # amplitude of the resulting social force
+gamma = 0.4     # parameter influencing how fast the resulting force decays with increasing distance
+n = 1.0         # parameter influencing the angular interaction range taken into account for the partial force
+                # responsible for the directional change
+n_prime = 3.0   # parameter influencing the angular interaction range taken into account for the partial force
+                # responsible for the deceleration
+epsilon = 0.005 # interaction angle offset creating a bias to either evade left or right
+perception_threshold = 50   # threshold determining how close obstacles need to be in order to be considered by SFM

@@ -22,7 +22,7 @@ class PedSpawnManager:
         self.spectator_focus = scenario_config.get('walker', {}).get('spectator_focus')
         self.ped_seed = scenario_config.get('walker', {}).get('pedestrian_seed', 2000)
         self.variate_speed = scenario_config.get('walker', {}).get('variate_speed', 0.0)
-        waypoint_distance = scenario_config.get('walker', {}).get('waypoint_distance', 20)
+        waypoint_distance = scenario_config.get('walker', {}).get('waypoint_distance', 10)
         jaywalking_weight = scenario_config.get('walker', {}).get('jaywalking_weight', 2)
         amount_random_peds = scenario_config.get('walker', {}).get('random_pedestrians', 0)
 
@@ -70,7 +70,7 @@ class PedSpawnManager:
             for spawn_point in ped_spawner_config:
 
                 spawn_location = np.array(spawn_point['spawn_location'])
-                speed = spawn_point['speed']
+                speed = spawn_point.get('speed', 1.2)
                 destination = np.array(spawn_point['destination'])
 
                 # generate route or use manually defined waypoints depending on configuration
@@ -93,7 +93,7 @@ class PedSpawnManager:
                 blueprint = spawn_point.get('blueprint')
                 quantity = spawn_point.get('quantity', 1)
                 spawn_time = spawn_point.get('spawn_time', 0.0)
-                spawn_interval = spawn_point.get('spawn_interval', 1.0)
+                spawn_interval = spawn_point.get('spawn_interval', 3.0)
                 crossing_speed_factor = spawn_point.get('crossing_speed_factor', 1.5)
                 crossing_safety_margin = spawn_point.get('crossing_safety_margin', 1.5)
 
